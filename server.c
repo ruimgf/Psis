@@ -29,6 +29,10 @@ void intHandler(int dumbi){
   exit(0);
 }
 
+int n_thread_ocupate=0;
+
+int n_thread=0;
+
 void * thread(void * fd){
   int socket_fd = *((int*)(fd));
   socklen_t size_addr;
@@ -40,11 +44,11 @@ void * thread(void * fd){
   int new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
   if(new_fd == -1)
     exit(-1);
-    
+
   n_thread_ocupate++;
   if (n_thread_ocupate>=MAX_THREADS) {
     n_thread++;
-    pthread_create(&clients,NULL,thread,(void*)fd);
+    pthread_create(&client,NULL,thread,(void*)fd);
   }
 
 
@@ -71,15 +75,13 @@ void * thread(void * fd){
   if (n_thread>=MAX_THREADS) {
       n_thread--;
       n_thread_ocupate--;
-      pthread_exit();
+      //pthread_exit();
 
   }
 
 }
 
-int n_thread_ocupate=0;
 
-int n_thread=0;
 int main(){
 
 
