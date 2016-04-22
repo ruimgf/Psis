@@ -21,6 +21,6 @@ implement critical region and mutex
 to complile
 
 gcc list.c -c -o list.o
-gcc kv.c -c -kv.o
+gcc kv.c -c -o kv.o
 gcc server.c list.o -o bin/server
 gcc client.c kv.o -o bin/client

@@ -31,12 +31,19 @@ int kv_connect(char * kv_server_ip, int kv_server_port){
 }
 
 void kv_close(int kv_descriptor){
+  message m ;
+  m.operation = EXIT;
+  m.key = -1;
+  m.value_length = -1;
 
+  if(send(kv_descriptor, &m, sizeof(m), 0)==-1){
+    return(-1);
+  }
   close(kv_descriptor);
 
 }
 
-int kv_write(int kv_descriptor, uint32_t key, char * value, int value_length){
+int kv_write(int kv_descriptor, uint32_t key, char * value, int value_length, int overwrite){
 
     message m;
 
@@ -59,18 +66,28 @@ int kv_write(int kv_descriptor, uint32_t key, char * value, int value_length){
 
 int kv_read(int kv_descriptor, uint32_t key, char * value, int value_length){
 
-  message m;
+  message m_c, m_s;
 
-  m.operation = READ;
-  m.key=key;
-  m.value_length=value_length;
+  m_c.operation = READ;
+  m_c.key = key;
+  m_c.value_length = value_length;
+  printf("primeiro\n");
+  if(send(kv_descriptor, &m_c, sizeof(m_c), 0)==-1){
+    return(-1);
+  }
+  printf("segundo\n");
+  if(recv(kv_descriptor,&m_s,sizeof(m_s), 0)==-1){
+    return(-1);
+  }
+  printf("terceiro\n");
 
-  if(send(kv_descriptor, &m, sizeof(m), 0)==-1){
+  /** pode haver aquui um erro se m_s.value_length > sizeof(value) **/
+  if(recv(kv_descriptor,value,m_s.value_length, 0)==-1){
     return(-1);
   }
 
-  if(recv(kv_descriptor,value,value_length, 0)==-1){
-    return(-1);
+  if (m_s.value_length > value_length) {
+    /* return erroo */
   }
 
   // printf("%s\n",value);

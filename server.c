@@ -46,38 +46,41 @@ void * thread(void * fd){
 
   message m;
 
+  int naosair = 1;
+  while (naosair) {
+    /* code */
 
-  /*
-  n_thread_ocupate++;
-  if (n_thread_ocupate>=MAX_THREADS) {
-    n_thread++;
-    pthread_create(&client,NULL,thread,(void*)fd);
+      recv(new_fd,(void *)&m, sizeof(m), 0);
+      printf("1\n");
+      switch (m.operation) {
+        case READ:
+          printf("2\n");
+          printf("key read : %u\n",m.key);
+          printf("3\n");
+          aux = search_key_on_list(begin, m.key);
+          sprintf(buf,"%s",aux->value);
+          m.value_length = strlen(buf) + 1;
+          send(new_fd,&m, sizeof(m),0);
+          send(new_fd,buf, sizeof(buf),0);
+          break;
+        case WRITE:
+          printf("WRITE\n");
+          recv(new_fd,buf,m.value_length, 0);
+          begin = insert_begin_list(begin, m.key,buf);
+          printf("%s",buf);
+          break;
+        case DELETE:
+          printf("delete : %u\n",m.key);
+          break;
+        case EXIT :
+          naosair = 0;
+          printf("client exit\n");
+          break;
+        default:
+          break;
+      }
   }
-  */
-
-
-  recv(new_fd,(void *)&m, sizeof(m), 0);
-
-  switch (m.operation) {
-    case READ:
-      printf("key read : %u\n",m.key);
-      aux = search_key_on_list(begin, m.key);
-      sprintf(buf,"%s",aux->value);
-      send(new_fd,buf, m.value_length,0);
-      break;
-    case WRITE:
-      printf("WRITE\n");
-      recv(new_fd,buf,m.value_length, 0);
-      begin = insert_begin_list(begin, m.key,buf);
-      printf("%s",buf);
-      break;
-    case DELETE:
-      printf("delete : %u\n",m.key);
-      break;
-
-    default:
-      break;
-  }
+  close(new_fd);
   int ret=0;
   pthread_exit(&ret);
 }
