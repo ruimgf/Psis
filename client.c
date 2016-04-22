@@ -20,15 +20,17 @@ int main(){
       exit(-1);
     }
     int naosair = 1;
+
     while(naosair){
+
       printf("operation: ");
       fgets(buf, 100, stdin);
       sscanf(buf,"%d",&op);
+
       if(op != EXIT){
         printf("key:");
         fgets(buf,100, stdin);
         sscanf(buf,"%d",&key);
-
       }
 
 

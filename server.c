@@ -48,15 +48,12 @@ void * thread(void * fd){
 
   int naosair = 1;
   while (naosair) {
-    /* code */
 
       recv(new_fd,(void *)&m, sizeof(m), 0);
-      printf("1\n");
+
       switch (m.operation) {
         case READ:
-          printf("2\n");
           printf("key read : %u\n",m.key);
-          printf("3\n");
           aux = search_key_on_list(begin, m.key);
           sprintf(buf,"%s",aux->value);
           m.value_length = strlen(buf) + 1;
