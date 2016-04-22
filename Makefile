@@ -172,6 +172,30 @@ kv.c.s:
 	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/kv.c.s
 .PHONY : kv.c.s
 
+list.o: list.c.o
+.PHONY : list.o
+
+# target to build an object file
+list.c.o:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/list.c.o
+.PHONY : list.c.o
+
+list.i: list.c.i
+.PHONY : list.i
+
+# target to preprocess a source file
+list.c.i:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/list.c.i
+.PHONY : list.c.i
+
+list.s: list.c.s
+.PHONY : list.s
+
+# target to generate assembly for a file
+list.c.s:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/list.c.s
+.PHONY : list.c.s
+
 server.o: server.c.o
 .PHONY : server.o
 
@@ -212,6 +236,9 @@ help:
 	@echo "... kv.o"
 	@echo "... kv.i"
 	@echo "... kv.s"
+	@echo "... list.o"
+	@echo "... list.i"
+	@echo "... list.s"
 	@echo "... server.o"
 	@echo "... server.i"
 	@echo "... server.s"
@@ -228,3 +255,4 @@ help:
 cmake_check_build_system:
 	$(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
+

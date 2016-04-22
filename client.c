@@ -10,24 +10,43 @@ int main(){
 
     char buf[100];
     sprintf(buf,"%s",SOCK_ADDRESS);
-    printf("message: ");
-
+    unsigned int key;
+    int op;
 
 //verificar return
     int sock_fd = kv_connect(buf, 10000);
     if (sock_fd==-1) {
-      /* code */
+      printf("invalid connect\n");
+      exit(-1);
     }
+    printf("operation: ");
+    fgets(buf, 100, stdin);
+    sscanf(buf,"%d",&op);
 
-    //fgets(buf, MESSAGE_LEN, stdin);
+    printf("key:");
+    fgets(buf,100, stdin);
+    sscanf(buf,"%d",&key);
 
+    switch (op) {
+      case WRITE:
+        printf("value: ");
+        fgets(buf, 100, stdin);
+        kv_write(sock_fd,100, buf, sizeof(buf));
+        break;
+      case READ:
+        kv_read(sock_fd,100,buf,4);
+        printf("key : %u value %s \n",key,buf );
+        break;
 
-    //kv_write(sock_fd,1000, buf, sizeof(buf));
-
-    //kv_read(sock_fd,100,buf,4);
-
-    kv_delete(sock_fd, 20302);
-
+      case DELETE:
+        kv_delete(sock_fd, 20302);
+        break;
+      default:
+        printf("invalid operation \n");
+        kv_close(sock_fd);
+      break;
+    }
+    //getchar();
     kv_close(sock_fd);
     printf("OK\n");
     exit(0);
