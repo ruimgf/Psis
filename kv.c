@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <stdio.h>
+ #include <unistd.h>
 
 int kv_connect(char * kv_server_ip, int kv_server_port){
 
@@ -37,7 +38,7 @@ void kv_close(int kv_descriptor){
   m.value_length = -1;
 
   if(send(kv_descriptor, &m, sizeof(m), 0)==-1){
-    return(-1);
+    return;
   }
   close(kv_descriptor);
 
@@ -47,7 +48,12 @@ int kv_write(int kv_descriptor, uint32_t key, char * value, int value_length, in
 
     message m;
 
-    m.operation = WRITE;
+    if (overwrite == 1) {
+      m.operation = OVERWRITE;
+    }else{
+      m.operation = WRITE;
+    }
+
     m.key=key;
     m.value_length=value_length;
 
@@ -59,6 +65,8 @@ int kv_write(int kv_descriptor, uint32_t key, char * value, int value_length, in
       return(-1);
     }
 
+    /** fazer um rcv para confirmar se foi ou não escrito.*/
+
     return 0;
 
 }
@@ -66,20 +74,19 @@ int kv_write(int kv_descriptor, uint32_t key, char * value, int value_length, in
 
 int kv_read(int kv_descriptor, uint32_t key, char * value, int value_length){
 
-  message m_c, m_s;
+  message m_r, m_s;
 
-  m_c.operation = READ;
-  m_c.key = key;
-  m_c.value_length = value_length;
-  printf("primeiro\n");
-  if(send(kv_descriptor, &m_c, sizeof(m_c), 0)==-1){
+  m_s.operation = READ;
+  m_s.key = key;
+  m_s.value_length = value_length;
+
+  if(send(kv_descriptor, &m_s, sizeof(m_s), 0)==-1){
     return(-1);
   }
-  printf("segundo\n");
-  if(recv(kv_descriptor,&m_s,sizeof(m_s), 0)==-1){
+
+  if(recv(kv_descriptor,&m_r,sizeof(m_r), 0)==-1){
     return(-1);
   }
-  printf("terceiro\n");
 
   /** pode haver aquui um erro se m_s.value_length > sizeof(value) **/
   if(recv(kv_descriptor,value,m_s.value_length, 0)==-1){
@@ -87,10 +94,8 @@ int kv_read(int kv_descriptor, uint32_t key, char * value, int value_length){
   }
 
   if (m_s.value_length > value_length) {
-    /* return erroo */
+    /* return erroo ver enunciado */
   }
-
-  // printf("%s\n",value);
 
   return 0;
 }
@@ -106,11 +111,14 @@ int kv_delete(int kv_descriptor, uint32_t key){
 
   message m;
   m.operation = DELETE;
-  m.key=key;
+  m.key = key;
 
   if(send(kv_descriptor, &m, sizeof(m), 0)==-1){
     return(-1);
   }
+
+  /* adicionar leitura para confirmar delete com sucesso */
+
 
   return(0);
 

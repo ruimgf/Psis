@@ -30,7 +30,7 @@ int n_thread_ocupate=0;
 
 int n_thread=0;
 
-item * begin , *aux;
+item * begin ;
 
 void intHandler(int dumbi){
   print_list(begin);
@@ -38,10 +38,58 @@ void intHandler(int dumbi){
   exit(0);
 }
 
-void * thread(void * fd){
-  int new_fd = *((int*)(fd));
+int op_read(int new_fd, uint32_t key){
 
-  pthread_t client;
+  item * aux;
+  message m;
+  char * buf;
+
+  #ifdef DEBUG
+    printf("key read : %u \n",key);
+  #endif
+
+  aux = search_key_on_list(begin, key);
+  buf  = (char * )malloc(sizeof(char)*strlen(aux->value)+1);
+  sprintf(buf,"%s",aux->value);
+  m.value_length = strlen(buf) + 1;
+
+  if(send(new_fd,&m, sizeof(m),0)==-1){
+    return -1;
+  }
+
+  if(send(new_fd,buf, sizeof(buf),0)==-1){
+    return -1;
+  }
+  free(buf);
+
+}
+
+int op_write(int new_fd, message m){
+  char buf[100]; // tem de ser alterado isto é so para compilar
+
+  #ifdef DEBUG
+    printf("WRITE\n");
+  #endif
+
+  recv(new_fd,buf,m.value_length, 0);
+  begin = insert_begin_list(begin, m.key,buf);
+
+  #ifdef DEBUG
+    printf("%s",buf);
+  #endif
+
+  return 0;
+}
+
+int op_delete(){
+
+  //printf("delete : %u\n",m.key);
+  return 0;
+}
+
+void * thread(void * fd){
+
+  int new_fd = *((int*)(fd));
   char buf[100];
 
   message m;
@@ -53,25 +101,19 @@ void * thread(void * fd){
 
       switch (m.operation) {
         case READ:
-          printf("key read : %u\n",m.key);
-          aux = search_key_on_list(begin, m.key);
-          sprintf(buf,"%s",aux->value);
-          m.value_length = strlen(buf) + 1;
-          send(new_fd,&m, sizeof(m),0);
-          send(new_fd,buf, sizeof(buf),0);
+          op_read(new_fd, m.key);
           break;
         case WRITE:
-          printf("WRITE\n");
-          recv(new_fd,buf,m.value_length, 0);
-          begin = insert_begin_list(begin, m.key,buf);
-          printf("%s",buf);
+          op_write(new_fd,m);
           break;
         case DELETE:
-          printf("delete : %u\n",m.key);
+          op_delete();
           break;
         case EXIT :
           naosair = 0;
+          #ifdef DEBUG
           printf("client exit\n");
+          #endif
           break;
         default:
           break;
@@ -96,13 +138,12 @@ int main(){
 		exit(-1);
 	}
 
-  begin = creat_list();
-
-
 	server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = INADDR_ANY;
   int port = 9999;
   int err = -1;
+
+  // bind server
   while(1){
     server_addr.sin_port = htons(port);
     err = bind(sock_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
@@ -113,24 +154,30 @@ int main(){
     port++;
   }
 
-  printf(" socket created and binded \n Ready to receive messages\n");
+  #ifdef DEBUG
+    printf(" socket created and binded \n Ready to receive messages\n");
+    printf("sucess \n");
+  #endif
 
   listen(sock_fd, MAX_CLIENT_WAIT);
-  printf("sucess \n");
-  int i;
-  pthread_t clients[MAX_THREADS];
-
   pthread_t client;
   struct sockaddr_in client_addr;
   socklen_t size_addr;
+
+  begin = creat_list();
   int new_fd;
   while(1){
     new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
-    if(new_fd == -1)
+
+    if(new_fd == -1){
       exit(-1);
+    }
+
     pthread_create(&client,NULL,thread,(void*)&new_fd);
 
+    #ifdef DEBUG
     printf("accept\n");
+    #endif
 
   }
 

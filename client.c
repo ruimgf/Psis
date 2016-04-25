@@ -1,7 +1,6 @@
 #include "kv.h"
 
 #include <stdlib.h>
-//#include <errno.h>
 #include <stdio.h>
 
 
@@ -30,7 +29,7 @@ int main(){
       if(op != EXIT){
         printf("key:");
         fgets(buf,100, stdin);
-        sscanf(buf,"%d",&key);
+        sscanf(buf,"%u",&key);
       }
 
 
@@ -38,11 +37,11 @@ int main(){
         case WRITE:
           printf("value: ");
           fgets(buf, 100, stdin);
-          kv_write(sock_fd,100, buf, sizeof(buf),0);
+          kv_write(sock_fd,key, buf, sizeof(buf),0);
           break;
         case READ:
           printf("op read\n");
-          kv_read(sock_fd,100,buf,4);
+          kv_read(sock_fd,key,buf,1000);
           printf("key : %u value %s \n",key,buf );
           break;
 
