@@ -63,26 +63,28 @@ item *  search_key_on_list(item * begin, unsigned int key){
 
 }
 
-int delete_entry(item * *begin, int id)
+int delete_entry(item * *begin, unsigned int key)
 {
     item * aux1 = begin;
     item * aux2 = aux->seg;
     if(aux1=NULL)
         return 0;//se nao tem nada nao pode fazer DELETEe de nada
-    if(aux1->value==id)
+    if(aux1->value==key)
     {
       *begin=aux2;
-      free(aux1->value);
+      free(aux1->key);
       free(aux1);
       return 1; //fez delete
     }
-    while(aux2->value!=id)
+    while(aux2->key!=key)
     {
         aux1=aux1->seg;
         aux2=aux2->seg;
     }
+    if(aux2==NULL)
+      return 0; //se nao existe a key nao elimina nada
     aux1->seg=aux2->seg;
-    free(aux2->value);
+    free(aux2->key);
     free(aux2);
     return 1; // fez delete
 }
