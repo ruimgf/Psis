@@ -37,7 +37,7 @@ int main(){
         case WRITE:
           printf("value: ");
           fgets(buf, 100, stdin);
-          kv_write(sock_fd,key, buf, sizeof(buf),0);
+          kv_write(sock_fd,key, buf, sizeof(buf),1);
           break;
         case READ:
           printf("op read\n");

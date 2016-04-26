@@ -6,7 +6,8 @@ typedef struct item1{
 }item;
 
 item * creat_list();
-item *  insert_begin_list(item * begin, unsigned int key,char * value);
+int insert_begin_list(item * *begin, unsigned int key,char * value,int overwrite);
 item *  search_key_on_list(item * begin, unsigned int key);
 void delete_list(item * begin);
 void print_list(item * begin);
+int delete_entry(item * *begin, unsigned int key);

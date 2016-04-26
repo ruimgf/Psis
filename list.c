@@ -14,13 +14,20 @@ item * creat_list(){
 
 int insert_begin_list(item * *begin, unsigned int key,char * value,int overwrite)
 {
-  item * aux = begin;
+  item * aux = * begin;
   item * new;
   //procura se a key ja existe
-  while(aux->key!=key)
-    aux=aux->seg;
+  while(aux!=NULL){
+
+    if(aux->key = key){
+      break;
+    }
+
+    aux=aux->next;
+  }
+
   //se encontrou essa key
-  if(aux->key==key)
+  if(aux!=NULL)
   {
     if(overwrite==1)
     {
@@ -31,7 +38,7 @@ int insert_begin_list(item * *begin, unsigned int key,char * value,int overwrite
   //se nao encontrou a key vai criar o novo
   else
   {
-    aux=begin;
+    aux=*begin;
     new = (item *) malloc(sizeof(item));
     new->key  = key;
     new->value = (char *) malloc(sizeof(value));
@@ -65,26 +72,27 @@ item *  search_key_on_list(item * begin, unsigned int key){
 
 int delete_entry(item * *begin, unsigned int key)
 {
-    item * aux1 = begin;
-    item * aux2 = aux->seg;
+    item * aux1 = *begin;
+    item * aux2 = aux1->next;
     if(aux1=NULL)
         return 0;//se nao tem nada nao pode fazer DELETEe de nada
-    if(aux1->value==key)
+
+    if(aux1->key==key)
     {
       *begin=aux2;
-      free(aux1->key);
+      free(aux1->value);
       free(aux1);
       return 1; //fez delete
     }
     while(aux2->key!=key)
     {
-        aux1=aux1->seg;
-        aux2=aux2->seg;
+        aux1=aux1->next;
+        aux2=aux2->next;
     }
     if(aux2==NULL)
       return 0; //se nao existe a key nao elimina nada
-    aux1->seg=aux2->seg;
-    free(aux2->key);
+    aux1->next=aux2->next;
+    free(aux2->value);
     free(aux2);
     return 1; // fez delete
 }

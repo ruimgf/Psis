@@ -72,7 +72,7 @@ int op_write(int new_fd, message m){
   #endif
 
   recv(new_fd,buf,m.value_length, 0);
-  begin = insert_begin_list(begin, m.key,buf);
+  insert_begin_list(&begin, m.key,buf,1);
 
   #ifdef DEBUG
     printf("%s",buf);
