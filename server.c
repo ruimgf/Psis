@@ -81,8 +81,9 @@ int op_write(int new_fd, message m){
   return 0;
 }
 
-int op_delete(){
+int op_delete(message m){
 
+  delete_entry(&begin,m.key);
   //printf("delete : %u\n",m.key);
   return 0;
 }
@@ -107,7 +108,7 @@ void * thread(void * fd){
           op_write(new_fd,m);
           break;
         case DELETE:
-          op_delete();
+          op_delete(m);
           break;
         case EXIT :
           naosair = 0;
