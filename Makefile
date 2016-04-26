@@ -56,17 +56,6 @@ CMAKE_BINARY_DIR = /home/rui/code/psis_project
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
-
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-
-.PHONY : rebuild_cache/fast
-
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
@@ -77,6 +66,17 @@ edit_cache:
 edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
+
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -111,6 +111,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named client
+
+# Build rule for target.
+client: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 client
+.PHONY : client
+
+# fast build rule for target.
+client/fast:
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/build
+.PHONY : client/fast
+
+#=============================================================================
 # Target rules for targets named server
 
 # Build rule for target.
@@ -124,17 +137,84 @@ server/fast:
 .PHONY : server/fast
 
 #=============================================================================
-# Target rules for targets named client
+# Target rules for targets named client-exe-1
 
 # Build rule for target.
-client: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 client
-.PHONY : client
+client-exe-1: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 client-exe-1
+.PHONY : client-exe-1
 
 # fast build rule for target.
-client/fast:
-	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/build
-.PHONY : client/fast
+client-exe-1/fast:
+	$(MAKE) -f CMakeFiles/client-exe-1.dir/build.make CMakeFiles/client-exe-1.dir/build
+.PHONY : client-exe-1/fast
+
+#=============================================================================
+# Target rules for targets named cli-exe-par-1
+
+# Build rule for target.
+cli-exe-par-1: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 cli-exe-par-1
+.PHONY : cli-exe-par-1
+
+# fast build rule for target.
+cli-exe-par-1/fast:
+	$(MAKE) -f CMakeFiles/cli-exe-par-1.dir/build.make CMakeFiles/cli-exe-par-1.dir/build
+.PHONY : cli-exe-par-1/fast
+
+cli-exe-1.o: cli-exe-1.c.o
+
+.PHONY : cli-exe-1.o
+
+# target to build an object file
+cli-exe-1.c.o:
+	$(MAKE) -f CMakeFiles/client-exe-1.dir/build.make CMakeFiles/client-exe-1.dir/cli-exe-1.c.o
+.PHONY : cli-exe-1.c.o
+
+cli-exe-1.i: cli-exe-1.c.i
+
+.PHONY : cli-exe-1.i
+
+# target to preprocess a source file
+cli-exe-1.c.i:
+	$(MAKE) -f CMakeFiles/client-exe-1.dir/build.make CMakeFiles/client-exe-1.dir/cli-exe-1.c.i
+.PHONY : cli-exe-1.c.i
+
+cli-exe-1.s: cli-exe-1.c.s
+
+.PHONY : cli-exe-1.s
+
+# target to generate assembly for a file
+cli-exe-1.c.s:
+	$(MAKE) -f CMakeFiles/client-exe-1.dir/build.make CMakeFiles/client-exe-1.dir/cli-exe-1.c.s
+.PHONY : cli-exe-1.c.s
+
+cli-exe-par-1.o: cli-exe-par-1.c.o
+
+.PHONY : cli-exe-par-1.o
+
+# target to build an object file
+cli-exe-par-1.c.o:
+	$(MAKE) -f CMakeFiles/cli-exe-par-1.dir/build.make CMakeFiles/cli-exe-par-1.dir/cli-exe-par-1.c.o
+.PHONY : cli-exe-par-1.c.o
+
+cli-exe-par-1.i: cli-exe-par-1.c.i
+
+.PHONY : cli-exe-par-1.i
+
+# target to preprocess a source file
+cli-exe-par-1.c.i:
+	$(MAKE) -f CMakeFiles/cli-exe-par-1.dir/build.make CMakeFiles/cli-exe-par-1.dir/cli-exe-par-1.c.i
+.PHONY : cli-exe-par-1.c.i
+
+cli-exe-par-1.s: cli-exe-par-1.c.s
+
+.PHONY : cli-exe-par-1.s
+
+# target to generate assembly for a file
+cli-exe-par-1.c.s:
+	$(MAKE) -f CMakeFiles/cli-exe-par-1.dir/build.make CMakeFiles/cli-exe-par-1.dir/cli-exe-par-1.c.s
+.PHONY : cli-exe-par-1.c.s
 
 client.o: client.c.o
 
@@ -163,33 +243,6 @@ client.c.s:
 	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/client.c.s
 .PHONY : client.c.s
 
-kv.o: kv.c.o
-
-.PHONY : kv.o
-
-# target to build an object file
-kv.c.o:
-	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/kv.c.o
-.PHONY : kv.c.o
-
-kv.i: kv.c.i
-
-.PHONY : kv.i
-
-# target to preprocess a source file
-kv.c.i:
-	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/kv.c.i
-.PHONY : kv.c.i
-
-kv.s: kv.c.s
-
-.PHONY : kv.s
-
-# target to generate assembly for a file
-kv.c.s:
-	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/kv.c.s
-.PHONY : kv.c.s
-
 list.o: list.c.o
 
 .PHONY : list.o
@@ -216,6 +269,39 @@ list.s: list.c.s
 list.c.s:
 	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/list.c.s
 .PHONY : list.c.s
+
+psiskv.o: psiskv.c.o
+
+.PHONY : psiskv.o
+
+# target to build an object file
+psiskv.c.o:
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/psiskv.c.o
+	$(MAKE) -f CMakeFiles/client-exe-1.dir/build.make CMakeFiles/client-exe-1.dir/psiskv.c.o
+	$(MAKE) -f CMakeFiles/cli-exe-par-1.dir/build.make CMakeFiles/cli-exe-par-1.dir/psiskv.c.o
+.PHONY : psiskv.c.o
+
+psiskv.i: psiskv.c.i
+
+.PHONY : psiskv.i
+
+# target to preprocess a source file
+psiskv.c.i:
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/psiskv.c.i
+	$(MAKE) -f CMakeFiles/client-exe-1.dir/build.make CMakeFiles/client-exe-1.dir/psiskv.c.i
+	$(MAKE) -f CMakeFiles/cli-exe-par-1.dir/build.make CMakeFiles/cli-exe-par-1.dir/psiskv.c.i
+.PHONY : psiskv.c.i
+
+psiskv.s: psiskv.c.s
+
+.PHONY : psiskv.s
+
+# target to generate assembly for a file
+psiskv.c.s:
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/psiskv.c.s
+	$(MAKE) -f CMakeFiles/client-exe-1.dir/build.make CMakeFiles/client-exe-1.dir/psiskv.c.s
+	$(MAKE) -f CMakeFiles/cli-exe-par-1.dir/build.make CMakeFiles/cli-exe-par-1.dir/psiskv.c.s
+.PHONY : psiskv.c.s
 
 server.o: server.c.o
 
@@ -250,19 +336,27 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... rebuild_cache"
-	@echo "... server"
 	@echo "... edit_cache"
+	@echo "... rebuild_cache"
 	@echo "... client"
+	@echo "... server"
+	@echo "... client-exe-1"
+	@echo "... cli-exe-par-1"
+	@echo "... cli-exe-1.o"
+	@echo "... cli-exe-1.i"
+	@echo "... cli-exe-1.s"
+	@echo "... cli-exe-par-1.o"
+	@echo "... cli-exe-par-1.i"
+	@echo "... cli-exe-par-1.s"
 	@echo "... client.o"
 	@echo "... client.i"
 	@echo "... client.s"
-	@echo "... kv.o"
-	@echo "... kv.i"
-	@echo "... kv.s"
 	@echo "... list.o"
 	@echo "... list.i"
 	@echo "... list.s"
+	@echo "... psiskv.o"
+	@echo "... psiskv.i"
+	@echo "... psiskv.s"
 	@echo "... server.o"
 	@echo "... server.i"
 	@echo "... server.s"
