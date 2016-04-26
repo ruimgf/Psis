@@ -45,6 +45,30 @@ item *  search_key_on_list(item * begin, unsigned int key){
 
 }
 
+int delete_entry(item ** begin, int id)
+{
+    item * aux1 = begin;
+    item * aux2 = aux->seg;
+    if(aux1=NULL)
+        return -1;
+    if(aux1->value==id)
+    {
+      *begin=aux2;
+      free(aux1->value);
+      free(aux1);
+    }
+    while(aux2->value!=id)
+    {
+        aux1=aux1->seg;
+        aux2=aux2->seg;
+    }
+    aux1->seg=aux2->seg;
+    free(aux2->value);
+    free(aux2);
+    return 0;
+}
+
+
 void delete_list(item * begin){
 
     item * aux1 = begin;
