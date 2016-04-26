@@ -68,12 +68,13 @@ int delete_entry(item * *begin, int id)
     item * aux1 = begin;
     item * aux2 = aux->seg;
     if(aux1=NULL)
-        return -1;
+        return 0;//se nao tem nada nao pode fazer DELETEe de nada
     if(aux1->value==id)
     {
       *begin=aux2;
       free(aux1->value);
       free(aux1);
+      return 1; //fez delete
     }
     while(aux2->value!=id)
     {
@@ -83,7 +84,7 @@ int delete_entry(item * *begin, int id)
     aux1->seg=aux2->seg;
     free(aux2->value);
     free(aux2);
-    return 0;
+    return 1; // fez delete
 }
 
 
@@ -94,7 +95,7 @@ void delete_list(item * begin){
     if(aux1 == NULL){
         return;
     }
-    
+
     while(aux1!=NULL){
       aux2 = aux1->next;
       free(aux1->value);
