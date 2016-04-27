@@ -38,6 +38,12 @@ int main(){
           printf("value: ");
           fgets(buf, 100, stdin);
           printf("!!!%s\n",buf );
+          kv_write(sock_fd,key, buf, sizeof(buf),0);
+          break;
+        case OVERWRITE:
+          printf("value: ");
+          fgets(buf, 100, stdin);
+          printf("!!!%s\n",buf );
           kv_write(sock_fd,key, buf, sizeof(buf),1);
           break;
         case READ:

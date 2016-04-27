@@ -30,17 +30,18 @@ int n_thread_ocupate=0;
 
 int n_thread=0;
 
-item * begin ;
+hashtable_t * ht;
+
 
 void intHandler(int dumbi){
-  print_list(begin);
+  //print_list(begin);
   close(sock_fd);
   exit(0);
 }
 
 int op_read(int new_fd, uint32_t key){
 
-  item * aux;
+  item_t * aux;
   message m;
   char * buf;
 
@@ -48,9 +49,7 @@ int op_read(int new_fd, uint32_t key){
     printf("key read : %u \n",key);
   #endif
 
-  aux = search_key_on_list(begin, key);
-  buf  = (char * )malloc(sizeof(char)*strlen(aux->value)+1);
-  sprintf(buf,"%s",aux->value);
+  buf = ht_get( ht,key );
   m.value_length = strlen(buf) + 1;
 
   if(send(new_fd,&m, sizeof(m),0)==-1){
@@ -60,9 +59,10 @@ int op_read(int new_fd, uint32_t key){
   if(send(new_fd,buf, sizeof(buf),0)==-1){
     return -1;
   }
-  free(buf);
 
 }
+
+
 
 int op_write(int new_fd, message m){
   char buf[100]; // tem de ser alterado isto é so para compilar
@@ -70,12 +70,15 @@ int op_write(int new_fd, message m){
   #ifdef DEBUG
     printf("WRITE\n");
   #endif
-  item * aux;
-  aux = begin;
+
   recv(new_fd,buf,m.value_length, 0);
   printf("key %u value %s \n", m.key, buf);
-  insert_begin_list(&aux, m.key,buf,1);
-  begin = aux;
+  if (m.operation == OVERWRITE) {
+    ht_set(ht,m.key,buf,1);
+  }else{
+    ht_set(ht,m.key,buf,0);
+  }
+
   #ifdef DEBUG
     printf("%s",buf);
   #endif
@@ -84,8 +87,7 @@ int op_write(int new_fd, message m){
 }
 
 int op_delete(message m){
-
-  delete_entry(&begin,m.key);
+  ht_remove( ht,m.key);
   //printf("delete : %u\n",m.key);
   return 0;
 }
@@ -107,6 +109,9 @@ void * thread(void * fd){
           op_read(new_fd, m.key);
           break;
         case WRITE:
+          op_write(new_fd,m);
+          break;
+        case OVERWRITE:
           op_write(new_fd,m);
           break;
         case DELETE:
@@ -167,7 +172,7 @@ int main(){
   struct sockaddr_in client_addr;
   socklen_t size_addr;
 
-  begin = creat_list();
+  ht=ht_create( 10);
   int new_fd;
   while(1){
     new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
