@@ -25,28 +25,33 @@ int insert_begin_list(item * *begin, unsigned int key,char * value,int overwrite
 
     aux=aux->next;
   }
-
+  printf("1\n");
   //se encontrou essa key
   if(aux!=NULL)
   {
     if(overwrite==1)
     {
-      aux->value=value;
+      //aux->value=value;
       return 2; //fez overwrite
     }
   }
   //se nao encontrou a key vai criar o novo
   else
   {
+    printf("2\n");
     aux=*begin;
     new = (item *) malloc(sizeof(item));
     new->key  = key;
-    new->value = (char *) malloc(sizeof(value));
-    strcpy(new->value, value);
+    printf("!!!!!! %s !!!!\n", value);
+    new->value = (char *) malloc(sizeof(char)*(strlen(value) + 1));
+    sprintf(new->value,"%s",value);
+    //strcpy(new->value, value);
     new->next = aux;
     *begin=new;
+    printf("%u %s\n",new->key,new->value);
     return 1; //criou um novo e inseriu
   }
+  printf("3\n");
   return 0; //se nao inseriu nem fez overwrite
 }
 
@@ -74,7 +79,7 @@ int delete_entry(item * *begin, unsigned int key)
 {
     item * aux1 = *begin;
     item * aux2 = aux1->next;
-    if(aux1=NULL)
+    if(aux1==NULL)
         return 0;//se nao tem nada nao pode fazer DELETEe de nada
 
     if(aux1->key==key)
@@ -84,6 +89,7 @@ int delete_entry(item * *begin, unsigned int key)
       free(aux1);
       return 1; //fez delete
     }
+    
     while(aux2->key!=key)
     {
         aux1=aux1->next;
@@ -118,7 +124,7 @@ void print_list(item * begin){
     item * aux = begin;
 
     while(aux!=NULL){
-      printf("key : %d value : %s \n", aux->key,aux->value);
+      printf("key : %u value : %s \n", aux->key,aux->value);
       aux=aux->next;
     }
 }

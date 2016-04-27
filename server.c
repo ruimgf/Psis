@@ -70,10 +70,12 @@ int op_write(int new_fd, message m){
   #ifdef DEBUG
     printf("WRITE\n");
   #endif
-
+  item * aux;
+  aux = begin;
   recv(new_fd,buf,m.value_length, 0);
-  insert_begin_list(&begin, m.key,buf,1);
-
+  printf("key %u value %s \n", m.key, buf);
+  insert_begin_list(&aux, m.key,buf,1);
+  begin = aux;
   #ifdef DEBUG
     printf("%s",buf);
   #endif

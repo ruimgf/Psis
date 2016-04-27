@@ -49,7 +49,7 @@ int kv_write(int kv_descriptor, uint32_t key, char * value, int value_length, in
     message m;
 
     if (overwrite == 1) {
-      m.operation = OVERWRITE;
+      m.operation = WRITE;
     }else{
       m.operation = WRITE;
     }

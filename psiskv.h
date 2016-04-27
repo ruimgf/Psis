@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-//#define DEBUG 0
+#define DEBUG 0
 #define SOCK_ADDRESS "127.0.0.1"
 #define WRITE 1
 #define OVERWRITE 2
