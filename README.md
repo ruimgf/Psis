@@ -11,16 +11,12 @@ To Compile
 
 This to do
 
-Change Write protocol
-Change Read protocol
-implement delete function lists
-change write function list to key existen
-implement critical region and mutex
+1) implement critical region and mutex
 
 
 to complile
 
-gcc list.c -c -o list.o
-gcc kv.c -c -o kv.o
-gcc server.c list.o -o bin/server
-gcc client.c kv.o -o bin/client
+1) gcc list.c -c -o list.o
+2) gcc kv.c -c -o kv.o
+3) gcc server.c list.o -o bin/server
+4) gcc client.c kv.o -o bin/client
