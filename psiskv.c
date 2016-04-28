@@ -4,7 +4,7 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <stdio.h>
- #include <unistd.h>
+#include <unistd.h>
 
 int kv_connect(char * kv_server_ip, int kv_server_port){
 
@@ -54,8 +54,8 @@ int kv_write(int kv_descriptor, uint32_t key, char * value, int value_length, in
       m.operation = WRITE;
     }
 
-    m.key=key;
-    m.value_length=value_length;
+    m.key = key;
+    m.value_length = value_length;
 
     if(send(kv_descriptor, &m, sizeof(m), 0)==-1){
       return(-1);
@@ -65,9 +65,10 @@ int kv_write(int kv_descriptor, uint32_t key, char * value, int value_length, in
       return(-1);
     }
 
+    recv(kv_descriptor,&m,sizeof(m), 0);
     /** fazer um rcv para confirmar se foi ou não escrito.*/
 
-    return 0;
+    return m.info;
 
 }
 
@@ -84,20 +85,19 @@ int kv_read(int kv_descriptor, uint32_t key, char * value, int value_length){
     return(-1);
   }
 
+    /** pode haver aquui um erro se m_s.value_length > sizeof(value) **/
   if(recv(kv_descriptor,&m_r,sizeof(m_r), 0)==-1){
     return(-1);
   }
 
-  /** pode haver aquui um erro se m_s.value_length > sizeof(value) **/
-  if(recv(kv_descriptor,value,m_s.value_length, 0)==-1){
+  if(m_r.info == -2){
+    return -2;
+  }
+
+  if(recv(kv_descriptor,value,value_length, 0)==-1){
     return(-1);
   }
-
-  if (m_s.value_length > value_length) {
-    /* return erroo ver enunciado */
-  }
-
-  return 0;
+  return m_r.info;
 }
 
 
@@ -117,9 +117,13 @@ int kv_delete(int kv_descriptor, uint32_t key){
     return(-1);
   }
 
+  if(recv(kv_descriptor,&m,sizeof(m), 0)==-1){
+    return(-1);
+  }
+
   /* adicionar leitura para confirmar delete com sucesso */
 
 
-  return(0);
+  return m.info;
 
 }

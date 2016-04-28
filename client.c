@@ -37,19 +37,23 @@ int main(){
         case WRITE:
           printf("value: ");
           fgets(buf, 100, stdin);
-          printf("!!!%s\n",buf );
+
           kv_write(sock_fd,key, buf, sizeof(buf),0);
           break;
         case OVERWRITE:
           printf("value: ");
           fgets(buf, 100, stdin);
-          printf("!!!%s\n",buf );
+        
           kv_write(sock_fd,key, buf, sizeof(buf),1);
           break;
         case READ:
           printf("op read\n");
-          kv_read(sock_fd,key,buf,1000);
-          printf("key : %u value %s \n",key,buf );
+          if(kv_read(sock_fd,key,buf,1000)!=-2){
+              printf("key : %u value %s \n",key,buf );
+          }else{
+            printf("nao existe key\n");
+          }
+
           break;
 
         case DELETE:

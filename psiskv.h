@@ -18,6 +18,7 @@ typedef struct message{
     int operation;
     unsigned int key;
     int value_length;
+    int info;
 }message;
 
 int kv_connect(char * kv_server_ip, int kv_server_port);

@@ -39,56 +39,78 @@ void intHandler(int dumbi){
   exit(0);
 }
 
-int op_read(int new_fd, uint32_t key){
+int op_read(int new_fd, message m){
 
   item_t * aux;
-  message m;
-  char * buf;
+  message m1;
+  char * buf,*buf_send;
 
-  #ifdef DEBUG
-    printf("key read : %u \n",key);
-  #endif
-
-  buf = ht_get( ht,key );
-  m.value_length = strlen(buf) + 1;
-
-  if(send(new_fd,&m, sizeof(m),0)==-1){
-    return -1;
+  buf = ht_get( ht , m.key );
+  m1.operation = READ_OK;
+  if(buf==NULL){
+    m1.info = -2 ;
+    if(send(new_fd,&m1, sizeof(m1),0)==-1){
+      return -1;
+    }
+    return 0;
+  }else{
+    m1.info = strlen(buf) +1;
+    if(send(new_fd,&m1, sizeof(m1),0)==-1){
+      return -1;
+    }
   }
 
-  if(send(new_fd,buf, sizeof(buf),0)==-1){
-    return -1;
+  if(buf!=NULL){
+    buf_send = (char *)malloc(sizeof(char)*m.value_length);
+    buf_send = strncpy(buf_send,buf, m.value_length-1);
+    buf_send[m.value_length-1]='\0';
+    if(send(new_fd,buf_send, m.value_length,0)==-1){
+      return -1;
+    }
   }
+
+
 
 }
 
 
 
 int op_write(int new_fd, message m){
-  char buf[100]; // tem de ser alterado isto é so para compilar
+  char * buf; // tem de ser alterado isto é so para compilar
+  message m1;
 
-  #ifdef DEBUG
-    printf("WRITE\n");
-  #endif
+
+  buf = (char *)malloc(sizeof(char) * (m.value_length +1) );
 
   recv(new_fd,buf,m.value_length, 0);
-  printf("key %u value %s \n", m.key, buf);
+
+  //printf("key %u value %s \n", m.key, buf);
+
   if (m.operation == OVERWRITE) {
-    ht_set(ht,m.key,buf,1);
+    m1.info = ht_set(ht,m.key,buf,1);
   }else{
-    ht_set(ht,m.key,buf,0);
+    m1.info = ht_set(ht,m.key,buf,0);
   }
 
-  #ifdef DEBUG
-    printf("%s",buf);
-  #endif
 
+  m1.operation = WRITE_OK;
+  if(send(new_fd, &m1, sizeof(m1), 0)==-1){
+    return(-1);
+  }
+
+  free(buf);
   return 0;
 }
 
-int op_delete(message m){
-  ht_remove( ht,m.key);
-  //printf("delete : %u\n",m.key);
+int op_delete(int new_fd ,message m){
+  message m1;
+
+
+  m1.operation = DELETE_OK;
+  m1.info = ht_remove(ht,m.key);
+  if(send(new_fd, &m1, sizeof(m1), 0)==-1){
+    return(-1);
+  }
   return 0;
 }
 
@@ -106,7 +128,7 @@ void * thread(void * fd){
 
       switch (m.operation) {
         case READ:
-          op_read(new_fd, m.key);
+          op_read(new_fd, m);
           break;
         case WRITE:
           op_write(new_fd,m);
@@ -115,7 +137,7 @@ void * thread(void * fd){
           op_write(new_fd,m);
           break;
         case DELETE:
-          op_delete(m);
+          op_delete(new_fd,m);
           break;
         case EXIT :
           naosair = 0;
@@ -172,7 +194,7 @@ int main(){
   struct sockaddr_in client_addr;
   socklen_t size_addr;
 
-  ht=ht_create( 10);
+  ht=ht_create(10);
   int new_fd;
   while(1){
     new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);

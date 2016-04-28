@@ -28,9 +28,9 @@ int insert_end_list(item_t * begin, unsigned int key,char * value,int overwrite)
       free(aux->value);
       aux->value = (char *) malloc(sizeof(char)*(strlen(value) + 1));
       sprintf(aux->value,"%s",value);
-      return 2; //fez overwrite
+      return 0; //fez overwrite
     }else{
-      return -1;
+      return -2;
 
     }
   }
@@ -51,10 +51,11 @@ int insert_end_list(item_t * begin, unsigned int key,char * value,int overwrite)
 
     aux->next = new;
 
-    printf("%u %s\n",new->key,new->value);
-    return 1; //criou um novo e inseriu
+
+    return 0; //criou um novo e inseriu
   }
-  return 0; //se nao inseriu nem fez overwrite
+  return -1; //se nao inseriu nem fez overwrite
+
 }
 
 item_t *  search_key_on_list(item_t * begin, unsigned int key){
@@ -80,24 +81,38 @@ item_t *  search_key_on_list(item_t * begin, unsigned int key){
 int delete_entry(item_t * begin, unsigned int key)
 {
     item_t * aux1 = begin->next;
-    item_t * aux2 = aux1->next;
+
+    item_t * aux2;
 
     if(aux1==NULL){
-        return 0;//se nao tem nada nao pode fazer DELETEe de nada
+        return -1;//se nao tem nada nao pode fazer DELETEe de nada
+    }else{
+      if(aux1->key == key){
+        begin->next = aux1->next;
+        free(aux1->value);
+        free(aux1);
+        return 0;
+      }
+
+
     }
+
+    aux2 = aux1->next;
 
     while(aux2!=NULL)
     {
         if(aux2->key == key){
           aux1->next = aux2->next;
+
           free(aux2->value);
           free(aux2);
+          return 0;
         }
         aux1=aux1->next;
         aux2=aux2->next;
     }
 
-    return -1; // fez delete
+    return -1; 
 }
 
 
@@ -158,23 +173,23 @@ int ht_hash( hashtable_t * hashtable, unsigned int key ) {
 	return key % hashtable->line_nr;
 }
 
-void ht_set( hashtable_t *hashtable, unsigned int key, char *value, int overwrite ) {
+int ht_set( hashtable_t *hashtable, unsigned int key, char *value, int overwrite ) {
 	int bin = 0;
   item_t * next;
 	bin = ht_hash( hashtable, key );
 
 	next = hashtable->table[ bin ];
 
-  insert_end_list(next,key,value,overwrite);
+  return insert_end_list(next,key,value,overwrite);
 
 }
 
-void ht_remove( hashtable_t *hashtable, unsigned int key) {
+int ht_remove( hashtable_t *hashtable, unsigned int key) {
 	int bin = 0;
   item_t * next;
 	bin = ht_hash( hashtable, key );
   next = hashtable->table[ bin ];
-	delete_entry(next,key);
+	return delete_entry(next,key);
 
 }
 
@@ -183,6 +198,7 @@ char * ht_get( hashtable_t *hashtable, unsigned int key ) {
 	item_t *pair;
 	/* Step through the bin, looking for our value. */
   bin = ht_hash( hashtable, key );
+
   pair = search_key_on_list(hashtable->table[ bin ],key);
 	if(pair!= NULL){
     return pair->value;
