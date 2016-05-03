@@ -33,7 +33,7 @@ int kv_connect(char * kv_server_ip, int kv_server_port){
 
 void kv_close(int kv_descriptor){
   message m ;
-  m.operation = EXIT;
+  m.info = EXIT;
   m.key = -1;
   m.value_length = -1;
 
@@ -49,9 +49,9 @@ int kv_write(int kv_descriptor, uint32_t key, char * value, int value_length, in
     message m;
 
     if (overwrite == 1) {
-      m.operation = OVERWRITE;
+      m.info = OVERWRITE;
     }else{
-      m.operation = WRITE;
+      m.info = WRITE;
     }
 
     m.key = key;
@@ -77,7 +77,7 @@ int kv_read(int kv_descriptor, uint32_t key, char * value, int value_length){
 
   message m_r, m_s;
 
-  m_s.operation = READ;
+  m_s.info = READ;
   m_s.key = key;
   m_s.value_length = value_length;
 
@@ -110,7 +110,7 @@ int kv_read(int kv_descriptor, uint32_t key, char * value, int value_length){
 int kv_delete(int kv_descriptor, uint32_t key){
 
   message m;
-  m.operation = DELETE;
+  m.info = DELETE;
   m.key = key;
 
   if(send(kv_descriptor, &m, sizeof(m), 0)==-1){

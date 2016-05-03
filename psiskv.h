@@ -15,7 +15,6 @@
 #define  MAX_CLIENT_WAIT 20
 
 typedef struct message{
-    int operation;
     unsigned int key;
     int value_length;
     int info;

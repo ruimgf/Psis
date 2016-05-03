@@ -46,7 +46,7 @@ int op_read(int new_fd, message m){
   char * buf,*buf_send;
 
   buf = ht_get( ht , m.key );
-  m1.operation = READ_OK;
+
   if(buf==NULL){
     m1.info = -2 ;
     if(send(new_fd,&m1, sizeof(m1),0)==-1){
@@ -86,14 +86,14 @@ int op_write(int new_fd, message m){
 
   //printf("key %u value %s \n", m.key, buf);
 
-  if (m.operation == OVERWRITE) {
+  if (m.info == OVERWRITE) {
     m1.info = ht_set(ht,m.key,buf,1);
   }else{
     m1.info = ht_set(ht,m.key,buf,0);
   }
 
 
-  m1.operation = WRITE_OK;
+  m1.info = WRITE_OK;
   if(send(new_fd, &m1, sizeof(m1), 0)==-1){
     return(-1);
   }
@@ -106,7 +106,7 @@ int op_delete(int new_fd ,message m){
   message m1;
 
 
-  m1.operation = DELETE_OK;
+  m1.info = DELETE_OK;
   m1.info = ht_remove(ht,m.key);
   if(send(new_fd, &m1, sizeof(m1), 0)==-1){
     return(-1);
@@ -126,7 +126,7 @@ void * thread(void * fd){
 
       recv(new_fd,(void *)&m, sizeof(m), 0);
 
-      switch (m.operation) {
+      switch (m.info) {
         case READ:
           op_read(new_fd, m);
           break;
