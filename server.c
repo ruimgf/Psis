@@ -128,15 +128,19 @@ void * thread(void * fd){
 
       switch (m.info) {
         case READ:
+          printf("read %d\n",m.info);
           op_read(new_fd, m);
           break;
         case WRITE:
+          printf("WRITE %d\n",m.info);
           op_write(new_fd,m);
           break;
         case OVERWRITE:
+          printf("OVERWRITE %d\n",m.info);
           op_write(new_fd,m);
           break;
         case DELETE:
+          printf("delete %d\n",m.info);
           op_delete(new_fd,m);
           break;
         case EXIT :
@@ -170,7 +174,7 @@ int main(){
 
 	server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = INADDR_ANY;
-  int port = 9999;
+  int port = 10500;
   int err = -1;
 
   // bind server
@@ -189,6 +193,30 @@ int main(){
     printf("sucess \n");
   #endif
 
+  struct sockaddr_in front_server_addr;
+  socklen_t len_endereco_1;
+  int err1;
+
+  int sock_fd1 = socket(AF_INET, SOCK_STREAM, 0);
+  if (sock_fd1 == -1){
+    return(-1);
+  }
+
+  front_server_addr.sin_family = AF_INET;
+  front_server_addr.sin_port = htons(9999);
+
+  inet_aton(SOCK_ADDRESS, &server_addr.sin_addr);
+
+  err = connect(sock_fd1, (const struct sockaddr *) &front_server_addr,sizeof(front_server_addr));
+  if (err == -1){
+    return(-1);
+  }
+  message m;
+  m.info = port;
+  if(send(sock_fd1,&m, sizeof(m),0)==-1){
+    return -1;
+  }
+  close(sock_fd1);
   listen(sock_fd, MAX_CLIENT_WAIT);
   pthread_t client;
   struct sockaddr_in client_addr;
@@ -202,12 +230,12 @@ int main(){
     if(new_fd == -1){
       exit(-1);
     }
-
-    pthread_create(&client,NULL,thread,(void*)&new_fd);
-
     #ifdef DEBUG
     printf("accept\n");
     #endif
+    pthread_create(&client,NULL,thread,(void*)&new_fd);
+
+
 
   }
 

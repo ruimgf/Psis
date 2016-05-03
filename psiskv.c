@@ -12,8 +12,9 @@ int kv_connect(char * kv_server_ip, int kv_server_port){
   struct sockaddr_in server_addr;
   socklen_t len_endereco;
   int err;
-
+  message m;
   int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+  int sock_fd1 = socket(AF_INET, SOCK_STREAM, 0);
   if (sock_fd == -1){
     return(-1);
   }
@@ -27,8 +28,22 @@ int kv_connect(char * kv_server_ip, int kv_server_port){
   if (err == -1){
     return(-1);
   }
+  recv(sock_fd,&m,sizeof(m), 0);
+  printf("recv %d\n",m.info);
+  close(sock_fd);
 
-  return(sock_fd);
+  // connect data server
+  server_addr.sin_family = AF_INET;
+  server_addr.sin_port = htons(m.info);
+
+  inet_aton(SOCK_ADDRESS, &server_addr.sin_addr);
+
+  err = connect(sock_fd1, (const struct sockaddr *) &server_addr,sizeof(server_addr));
+  if (err == -1){
+    return(-1);
+  }
+
+  return(sock_fd1);
 }
 
 void kv_close(int kv_descriptor){
