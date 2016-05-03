@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <string.h>
 
 int fp;
 
@@ -94,7 +95,7 @@ int op_write(int new_fd, message m){
   char * buf; // tem de ser alterado isto é so para compilar
   message m1;
 
-  buf = (char *)malloc(sizeof(char) * (m.value_length +1) );
+  buf = (char *)malloc(sizeof(char) * (m.value_length) );
 
   recv(new_fd,buf,m.value_length, 0);
 
@@ -107,9 +108,10 @@ int op_write(int new_fd, message m){
     m1.info = ht_set(ht,m.key,buf,0);
   }
 
-
+  m.value_length--;
   if (m1.info==0) {
     write(fp,&m,sizeof(m));////backup jorge
+    write(fp,buf,strlen(buf));
   }
   if(send(new_fd, &m1, sizeof(m1), 0)==-1){
     return(-1);
@@ -183,7 +185,27 @@ int main(int argc, char *argv[]){
 
 /////////////
 
-fp=open("backup.txt",O_CREAT | O_WRONLY,0600);
+message m_buf;
+char * buf;
+
+//fp=open("backup.txt",O_CREAT | O_WRONLY,0600);//write
+fp=open("backup.txt",O_RDONLY);//read
+
+
+
+while(read(fp,&m_buf,sizeof(m_buf))!=0)
+{
+  if(m_buf.info==WRITE){
+    buf = (char*)malloc((m_buf.value_length+1)*sizeof(char));
+    printf("tamanho: %d\n",m_buf.value_length);
+    read(fp,buf,m_buf.value_length);
+    buf[m_buf.value_length]='\0';
+    printf("leitura: %d: %s\n",m_buf.key,buf);
+
+  }
+}
+
+printf("cona");
 
 if (fp==-1)
 {
