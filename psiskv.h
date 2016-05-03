@@ -6,9 +6,6 @@
 #define OVERWRITE 2
 #define READ 3
 #define DELETE 4
-#define WRITE_OK 5
-#define READ_OK 6
-#define DELETE_OK 7
 #define EXIT 8
 
 

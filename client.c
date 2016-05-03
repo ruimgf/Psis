@@ -4,16 +4,22 @@
 #include <stdio.h>
 #include <string.h>
 
-int main(){
+int main(int argc, char ** argv){
 
 
     char buf[100];
     sprintf(buf,"%s",SOCK_ADDRESS);
     unsigned int key;
+    int port;
     int op;
+    sscanf(argv[1],"%d",&port);
+    if(argc ==1){
 
+      port = 9999;
+
+    }
 //verificar return
-    int sock_fd = kv_connect(buf, 9999);
+    int sock_fd = kv_connect(buf, port);
     if (sock_fd==-1) {
       printf("invalid connect\n");
       exit(-1);
@@ -49,7 +55,7 @@ int main(){
         case READ:
           printf("op read\n");
           if(kv_read(sock_fd,key,buf,1000)!=-2){
-              printf("key : %u value %s \n",key,buf );
+            printf("key : %u value %s \n",key,buf );
           }else{
             printf("nao existe key\n");
           }
@@ -57,7 +63,7 @@ int main(){
           break;
 
         case DELETE:
-          kv_delete(sock_fd, 20302);
+          kv_delete(sock_fd,key);
           break;
         case EXIT :
           naosair = 0;

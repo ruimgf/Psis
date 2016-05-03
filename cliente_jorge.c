@@ -6,7 +6,7 @@ int main()
 {
   int i=0;
   char linha[300];
-
+  int kv = kv_connect("127.0.0.1",9999);
   i++;sprintf(linha, "%d: A HISTORIA DO PATINHO FEIO", i);kv_write(kv, i , linha, strlen(linha)+1, 0);
   i++;sprintf(linha, "%d: Era uma vez uma mamã pata que teve 5 ovos.", i);kv_write(kv, i , linha, strlen(linha)+1, 0);
   i++;sprintf(linha, "%d: Ela esperava ansiosamente pelo dia em que os seus ovos quebrassem e deles nascessem os seus queridos filhos!", i);kv_write(kv, i , linha, strlen(linha)+1, 0);

@@ -90,6 +90,26 @@ int op_read(int new_fd, message m){
 }
 
 
+int backup_ht(){
+    int i;
+    item_t * aux;
+    message m;
+    for( i = 0 ; i < ht-> line_nr ; i++  ){
+      aux = ht->table[i]->next;
+      while (aux!=NULL) {
+        m.info = WRITE;
+        m.key = aux->key;
+        m.value_length = strlen(aux->value) + 1;
+        write(fp,&m,sizeof(m));////backup jorge
+        write(fp,aux->value,strlen(aux->value) + 1);
+        aux=aux->next;
+      }
+
+    }
+
+
+
+}
 
 int op_write(int new_fd, message m){
   char * buf; // tem de ser alterado isto é so para compilar
@@ -124,9 +144,10 @@ int op_write(int new_fd, message m){
 int op_delete(int new_fd ,message m){
   message m1;
 
-
-  m1.info = DELETE_OK;
   m1.info = ht_remove(ht,m.key);
+  if (m1.info==0) {
+    write(fp,&m,sizeof(m));////backup jorges
+  }
   if(send(new_fd, &m1, sizeof(m1), 0)==-1){
     return(-1);
   }
@@ -147,19 +168,17 @@ void * thread(void * fd){
 
       switch (m.info) {
         case READ:
-          printf("read %d\n",m.info);
+
           op_read(new_fd, m);
           break;
         case WRITE:
-          printf("WRITE %d\n",m.info);
+
           op_write(new_fd,m);
           break;
         case OVERWRITE:
-          printf("OVERWRITE %d\n",m.info);
           op_write(new_fd,m);
           break;
         case DELETE:
-          printf("delete %d\n",m.info);
           op_delete(new_fd,m);
           break;
         case EXIT :
@@ -188,7 +207,7 @@ int main(int argc, char *argv[]){
 message m_buf;
 char * buf;
 
-
+signal(SIGINT, intHandler);
 fp = open("backup.txt",O_RDONLY);//read
 ht = ht_create(10);
 if(fp!=-1){
@@ -200,17 +219,23 @@ if(fp!=-1){
       read(fp,buf,m_buf.value_length);
       buf[m_buf.value_length]='\0';
       ht_set(ht,m_buf.key,buf,1);
-      printf("%u %s\n",m_buf.key,buf);
+      //printf("%u %s\n",m_buf.key,buf);
+    }else{
+      ht_remove(ht,m_buf.key);
+
     }
 
   }
 
 
-
-}else{
-    fp=open("backup.txt",O_CREAT | O_WRONLY,0600);//write
-
+  close(fp);
 }
+
+
+  fp = open("backup.txt",O_CREAT|O_WRONLY|O_TRUNC,0600);
+
+  backup_ht();
+
 
 if (fp==-1)
 {
@@ -222,7 +247,7 @@ if (fp==-1)
 
   struct sockaddr_in server_addr;
 
-  signal(SIGINT, intHandler);
+
 
   sock_fd = socket(AF_INET, SOCK_STREAM, 0);
 
