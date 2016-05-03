@@ -90,8 +90,19 @@ int main(){
 
 
   }else{
-    //excve e passa porta por argumento
 
+
+    //excve e passa porta por argumento
+    char ** arg;
+    arg = (char **)malloc(2*sizeof(char*));
+    arg[0] = (char *)malloc(12*sizeof(char));
+    sprintf(arg[0],"data_server");
+    arg[1] = (char *)malloc(12*sizeof(char));
+    sprintf(arg[1],"%d",port);
+
+    if(execv("/home/rui/code/psis_project/bin/data_server",arg)==-1){
+      printf("erro\n");
+    }
 
   }
 
