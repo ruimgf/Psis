@@ -188,24 +188,29 @@ int main(int argc, char *argv[]){
 message m_buf;
 char * buf;
 
-//fp=open("backup.txt",O_CREAT | O_WRONLY,0600);//write
-fp=open("backup.txt",O_RDONLY);//read
 
+fp = open("backup.txt",O_RDONLY);//read
+ht = ht_create(10);
+if(fp!=-1){
 
-
-while(read(fp,&m_buf,sizeof(m_buf))!=0)
-{
-  if(m_buf.info==WRITE){
-    buf = (char*)malloc((m_buf.value_length+1)*sizeof(char));
-    printf("tamanho: %d\n",m_buf.value_length);
-    read(fp,buf,m_buf.value_length);
-    buf[m_buf.value_length]='\0';
-    printf("leitura: %d: %s\n",m_buf.key,buf);
+  while(read(fp,&m_buf,sizeof(m_buf))!=0)
+  {
+    if(m_buf.info==WRITE || m_buf.info==OVERWRITE){
+      buf = (char*)malloc((m_buf.value_length+1)*sizeof(char));
+      read(fp,buf,m_buf.value_length);
+      buf[m_buf.value_length]='\0';
+      ht_set(ht,m_buf.key,buf,1);
+      printf("%u %s\n",m_buf.key,buf);
+    }
 
   }
-}
 
-printf("cona");
+
+
+}else{
+    fp=open("backup.txt",O_CREAT | O_WRONLY,0600);//write
+
+}
 
 if (fp==-1)
 {
@@ -278,7 +283,7 @@ if (fp==-1)
   struct sockaddr_in client_addr;
   socklen_t size_addr;
 
-  ht=ht_create(10);
+
   int new_fd;
   while(1){
     new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);

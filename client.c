@@ -37,14 +37,14 @@ int main(){
         case WRITE:
           printf("value: ");
           fgets(buf, 100, stdin);
-
-          kv_write(sock_fd,key, buf, strlen(buf),0);
+          buf[strlen(buf)-1]='\0';
+          kv_write(sock_fd,key, buf, strlen(buf)+1,0);
           break;
         case OVERWRITE:
           printf("value: ");
           fgets(buf, 100, stdin);
-
-          kv_write(sock_fd,key, buf, sizeof(buf),1);
+          buf[strlen(buf)-1]='\0';
+          kv_write(sock_fd,key, buf, strlen(buf)+1,1);
           break;
         case READ:
           printf("op read\n");
