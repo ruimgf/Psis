@@ -13,7 +13,7 @@ client.o: client.c psiskv.h
 	gcc -c client.c
 
 server: server.o list.o psiskv.o
-	gcc server.o list.o psiskv.o -o bin/server
+	gcc server.o list.o psiskv.o -pthread -o bin/server
 
 client: client.o psiskv.o
 	gcc client.o psiskv.o -o bin/client
