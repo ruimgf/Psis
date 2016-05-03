@@ -107,10 +107,10 @@ int op_write(int new_fd, message m){
     m1.info = ht_set(ht,m.key,buf,0);
   }
 
+
   if (m1.info==0) {
     write(fp,&m,sizeof(m));////backup jorge
   }
-
   if(send(new_fd, &m1, sizeof(m1), 0)==-1){
     return(-1);
   }
@@ -177,7 +177,9 @@ void * thread(void * fd){
 }
 
 
-int main(){
+
+
+int main(int argc, char *argv[]){
 
 /////////////
 
@@ -190,8 +192,6 @@ if (fp==-1)
 }
 
 /////////////
-
-
 
   struct sockaddr_in server_addr;
 
@@ -235,7 +235,9 @@ if (fp==-1)
   }
 
   front_server_addr.sin_family = AF_INET;
-  front_server_addr.sin_port = htons(9999);
+  int front_server_port;
+  sscanf(argv[1],"%d",&front_server_port);
+  front_server_addr.sin_port = htons(front_server_port);
 
   inet_aton(SOCK_ADDRESS, &server_addr.sin_addr);
 
