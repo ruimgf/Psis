@@ -91,7 +91,7 @@ int main(){
 
   }else{
 
-    
+
     //excve e passa porta por argumento
     char ** arg;
     arg = (char **)malloc(2*sizeof(char*));
@@ -100,7 +100,7 @@ int main(){
     arg[1] = (char *)malloc(12*sizeof(char));
     sprintf(arg[1],"%d",port);
 
-    if(execv("/Users/jorgesacadura/Desktop/Psis/bin/data_server",arg)==-1){
+    if(execv("bin/data_server",arg)==-1){
       printf("erro\n");
     }
 

@@ -200,7 +200,7 @@ if(fp!=-1){
       read(fp,buf,m_buf.value_length);
       buf[m_buf.value_length]='\0';
       ht_set(ht,m_buf.key,buf,1);
-      printf("%u \n",m_buf.key);
+      printf("%u %s\n",m_buf.key,buf);
     }
 
   }
@@ -283,7 +283,7 @@ if (fp==-1)
   struct sockaddr_in client_addr;
   socklen_t size_addr;
 
-  
+
   int new_fd;
   while(1){
     new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
