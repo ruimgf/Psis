@@ -12,9 +12,15 @@ server.o: server.c list.h psiskv.h
 client.o: client.c psiskv.h
 	gcc -c client.c
 
-server: server.o list.o psiskv.o
+front_server.o: front_server.c psiskv.h
+	gcc -c front_server
+
+front_server: front_server.o
+	gcc front_server.o -o bin/front_server
+
+server: server.o list.o
 	gcc server.o list.o -pthread -o bin/server
-	
+
 client: client.o psiskv.o
 	gcc client.o psiskv.o -o bin/client
 
