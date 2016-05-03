@@ -21,6 +21,21 @@
 
 #define MAX_THREADS 20
 
+//////////////////
+
+//backup jorge
+
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+int fp;
+
+//////////////////
+
+
+
 
 int sock_fd;
 
@@ -79,7 +94,6 @@ int op_write(int new_fd, message m){
   char * buf; // tem de ser alterado isto é so para compilar
   message m1;
 
-
   buf = (char *)malloc(sizeof(char) * (m.value_length +1) );
 
   recv(new_fd,buf,m.value_length, 0);
@@ -88,12 +102,15 @@ int op_write(int new_fd, message m){
 
   if (m.info == OVERWRITE) {
     m1.info = ht_set(ht,m.key,buf,1);
+
   }else{
     m1.info = ht_set(ht,m.key,buf,0);
   }
 
+  if (m1.info==0) {
+    write(fp,&m,sizeof(m));////backup jorge
+  }
 
-  m1.info = WRITE_OK;
   if(send(new_fd, &m1, sizeof(m1), 0)==-1){
     return(-1);
   }
@@ -145,6 +162,7 @@ void * thread(void * fd){
           break;
         case EXIT :
           naosair = 0;
+          close(fp);//teste
           #ifdef DEBUG
           printf("client exit\n");
           #endif
@@ -160,6 +178,20 @@ void * thread(void * fd){
 
 
 int main(){
+
+/////////////
+
+fp=open("backup.txt",O_CREAT | O_WRONLY,0600);
+
+if (fp==-1)
+{
+  printf("Failed to create and open file!\n");
+  exit(-1);
+}
+
+/////////////
+
+
 
   struct sockaddr_in server_addr;
 
