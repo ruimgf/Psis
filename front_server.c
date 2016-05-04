@@ -21,6 +21,7 @@
 
 #define MAX_THREADS 20
 
+#include <errno.h>
 
 int sock_fd;
 
@@ -94,14 +95,15 @@ int main(){
 
     //excve e passa porta por argumento
     char ** arg;
-    arg = (char **)malloc(2*sizeof(char*));
+    arg = (char **)malloc(3*sizeof(char*));
     arg[0] = (char *)malloc(12*sizeof(char));
     sprintf(arg[0],"data_server");
     arg[1] = (char *)malloc(12*sizeof(char));
     sprintf(arg[1],"%d",port);
+    arg[2] = NULL;
 
     if(execv("bin/data_server",arg)==-1){
-      printf("erro\n");
+      perror("Error execve:");
     }
 
   }
