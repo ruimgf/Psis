@@ -86,7 +86,7 @@ int op_read(int new_fd, message m){
   }
 
 
-
+  return 35;//so pus para desaparecer o warning
 }
 
 
@@ -107,7 +107,7 @@ int backup_ht(){
 
     }
 
-
+    return 35;//so pus para desaparecer o warning
 
 }
 
