@@ -92,7 +92,7 @@ int main(){
 
   }else{
 
-
+    /*
     //excve e passa porta por argumento
     char ** arg;
     arg = (char **)malloc(3*sizeof(char*));
@@ -105,7 +105,7 @@ int main(){
     if(execv("bin/data_server",arg)==-1){
       perror("Error execve:");
     }
-
+    */
   }
 
 

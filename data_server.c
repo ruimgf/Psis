@@ -35,22 +35,20 @@ int fp;
 
 //////////////////
 
+pthread_mutex_t mux[10];
 
 
 
 int sock_fd;
 
-
-
-int n_thread_ocupate=0;
-
-int n_thread=0;
-
 hashtable_t * ht;
 
 
 void intHandler(int dumbi){
-  //print_list(begin);
+  close(fp);
+  fp = open("backup.txt",O_CREAT|O_WRONLY|O_TRUNC,0600);
+  backup_ht();
+  close(fp);
   close(sock_fd);
   exit(0);
 }
@@ -116,9 +114,7 @@ int op_write(int new_fd, message m){
   message m1;
 
   buf = (char *)malloc(sizeof(char) * (m.value_length) );
-
   recv(new_fd,buf,m.value_length, 0);
-
   //printf("key %u value %s \n", m.key, buf);
 
   if (m.info == OVERWRITE) {
@@ -127,8 +123,7 @@ int op_write(int new_fd, message m){
   }else{
     m1.info = ht_set(ht,m.key,buf,0);
   }
-
-  m.value_length--;
+  //m.value_length--;
   if (m1.info==0) {
     write(fp,&m,sizeof(m));////backup jorge
     write(fp,buf,strlen(buf));
@@ -165,14 +160,12 @@ void * thread(void * fd){
   while (naosair) {
 
       recv(new_fd,(void *)&m, sizeof(m), 0);
-
+      pthread_mutex_lock(&mux[m.key%10]);
       switch (m.info) {
         case READ:
-
           op_read(new_fd, m);
           break;
         case WRITE:
-
           op_write(new_fd,m);
           break;
         case OVERWRITE:
@@ -191,6 +184,7 @@ void * thread(void * fd){
         default:
           break;
       }
+      pthread_mutex_unlock(&mux[m.key%10]);
   }
   close(new_fd);
   int ret=0;
@@ -288,7 +282,13 @@ if (fp==-1)
 
   front_server_addr.sin_family = AF_INET;
   int front_server_port;
-  sscanf(argv[1],"%d",&front_server_port);
+  if(argc > 1){
+    sscanf(argv[1],"%d",&front_server_port);
+  }else{
+    printf("need to specify front_server_port\n");
+    exit(-1);
+  }
+
   front_server_addr.sin_port = htons(front_server_port);
 
   inet_aton(SOCK_ADDRESS, &server_addr.sin_addr);
@@ -320,7 +320,8 @@ if (fp==-1)
     printf("accept\n");
     #endif
     pthread_create(&client,NULL,thread,(void*)&new_fd);
-
+    // wait for thread colect kv_descriptor
+    sleep(1);
 
 
   }

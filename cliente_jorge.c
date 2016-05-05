@@ -37,5 +37,5 @@ int main()
   i++;sprintf(linha, "%d: Afinal ele não era um patinho feio mas um belo e jovem cisne!", i);kv_write(kv, i , linha, strlen(linha)+1, 0);
   i++;sprintf(linha, "%d: A partir desse dia, não houve mais tristezas, e o patinho feio que agora era um belo cisne, viveu feliz para sempre!", i);kv_write(kv, i , linha, strlen(linha)+1, 0);
   i++;sprintf(linha, "%d: VITORIA VITORIA ACABOU-SE A HISTORIA", i);kv_write(kv, i , linha, strlen(linha)+1, 0);
-
+  kv_close(kv);
 }

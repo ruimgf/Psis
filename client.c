@@ -12,10 +12,14 @@ int main(int argc, char ** argv){
     unsigned int key;
     int port;
     int op;
-    sscanf(argv[1],"%d",&port);
+
     if(argc ==1){
 
       port = 9999;
+
+    }else{
+
+        sscanf(argv[1],"%d",&port);
 
     }
 //verificar return
@@ -54,14 +58,12 @@ int main(int argc, char ** argv){
           break;
         case READ:
           printf("op read\n");
-          if(kv_read(sock_fd,key,buf,1000)!=-2){
+          if(kv_read(sock_fd,key,buf,100)!=-2){
             printf("key : %u value %s \n",key,buf );
           }else{
             printf("nao existe key\n");
           }
-
           break;
-
         case DELETE:
           kv_delete(sock_fd,key);
           break;
@@ -75,7 +77,7 @@ int main(int argc, char ** argv){
         break;
       }
     }
-    //getchar();
+  
     kv_close(sock_fd);
     printf("OK\n");
     exit(0);
