@@ -48,4 +48,4 @@ client_prof2: client_prof2.o
 
 
 clean:
-	rm -f obj/* bin/*
+	rm -f obj/* bin/* backup.txt backup.log

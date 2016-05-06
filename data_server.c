@@ -31,11 +31,12 @@
 #include <sys/types.h>
 #include <string.h>
 
-int fp;
+int fp;//ficheiro txt
+int log_file;//ficheiro log
 
 //////////////////
 // variaveis globais
-pthread_mutex_t mux[10];
+pthread_mutex_t mux;
 int sock_fd;
 hashtable_t * ht;
 int front_server_pid;
@@ -72,9 +73,10 @@ void * front_server_alive(void * fd){
       }
     }
   }
-
-
 }
+
+
+
 
 int backup_ht(){
     int i;
@@ -96,9 +98,58 @@ int backup_ht(){
     return 0;
 }
 
+void * log_cycle(void * name)
+{
+
+  int i;
+
+  while(1)
+  {
+    //for (i = 0; i < NR_LINES_HT; i++) {
+      pthread_mutex_lock(&mux);
+    //}
+    printf("lock\n");
+
+    close(log_file);
+
+    remove("backup.txt");
+    fp = open("backup.txt",O_CREAT|O_WRONLY,0600);
+    if (fp==-1)
+    {
+      printf("Backup.txt was not created succesfully!\n");
+      exit(-1);
+    }
+    backup_ht();
+    close(fp);
+
+    remove("backup.log");
+    log_file = open("backup.log",O_CREAT|O_WRONLY,0600);
+    if (log_file==-1)
+    {
+      printf("Backup.log was not created succesfully!\n");
+      exit(-1);
+    }
+
+    //for (i = 0; i < NR_LINES_HT; i++) {
+      pthread_mutex_unlock(&mux);
+    //}
+    printf("unlock\n");
+    sleep(60);
+  }
+
+}
+
+
 void intHandler(int dumbi){
-  close(fp);
-  fp = open("backup.txt",O_CREAT|O_WRONLY|O_TRUNC,0600);
+  close(log_file);
+  remove("backup.log");
+  remove("backup.txt");
+  fp = open("backup.txt",O_CREAT|O_WRONLY,0600);
+  if (fp==-1)
+  {
+    printf("Backup.txt was not created succesfully!\n");
+    exit(-1);
+  }
   backup_ht();
   close(fp);
   close(sock_fd);
@@ -152,8 +203,8 @@ int op_write(int new_fd, message m){
   }
 
   if (m1.info==0) {
-    write(fp,&m,sizeof(m));////backup jorge
-    write(fp,buf,strlen(buf));
+    write(log_file,&m,sizeof(m));////backup jorge
+    write(log_file,buf,strlen(buf));
   }
   if(send(new_fd, &m1, sizeof(m1), 0)==-1){
     return(-1);
@@ -167,7 +218,7 @@ int op_delete(int new_fd ,message m){
 
   m1.info = ht_remove(ht,m.key);
   if (m1.info==0) {
-    write(fp,&m,sizeof(m));////backup jorges
+    write(log_file,&m,sizeof(m));////backup jorges
   }
   if(send(new_fd, &m1, sizeof(m1), 0)==-1){
     return(-1);
@@ -186,24 +237,24 @@ void * thread(void * fd){
       recv(new_fd,(void *)&m, sizeof(m), 0);
       switch (m.info) {
         case READ:
-          pthread_mutex_lock(&mux[ht_hash(ht,m.key)]);
+          pthread_mutex_lock(&mux);
           op_read(new_fd, m);
-          pthread_mutex_unlock(&mux[ht_hash(ht,m.key)]);
+          pthread_mutex_unlock(&mux);
           break;
         case WRITE:
-          pthread_mutex_lock(&mux[ht_hash(ht,m.key)]);
+          pthread_mutex_lock(&mux);
           op_write(new_fd,m);
-          pthread_mutex_unlock(&mux[ht_hash(ht,m.key)]);
+          pthread_mutex_unlock(&mux);
           break;
         case OVERWRITE:
-          pthread_mutex_lock(&mux[ht_hash(ht,m.key)]);
+          pthread_mutex_lock(&mux);
           op_write(new_fd,m);
-          pthread_mutex_unlock(&mux[ht_hash(ht,m.key)]);
+          pthread_mutex_unlock(&mux);
           break;
         case DELETE:
-          pthread_mutex_lock(&mux[ht_hash(ht,m.key)]);
+          pthread_mutex_lock(&mux);
           op_delete(new_fd,m);
-          pthread_mutex_unlock(&mux[ht_hash(ht,m.key)]);
+          pthread_mutex_unlock(&mux);
           break;
         case EXIT :
           naosair = 0;
@@ -232,43 +283,58 @@ int main(int argc, char *argv[]){
 message m_buf;
 char * buf;
 
-signal(SIGINT, intHandler);
-fp = open("backup.txt",O_RDONLY);//read
-ht = ht_create(NR_LINES_HT);
-if(fp!=-1){
+  signal(SIGINT, intHandler);
 
-  while(read(fp,&m_buf,sizeof(m_buf))!=0)
+  fp = open("backup.txt",O_RDONLY);//read
+
+  if(0 != pthread_mutex_init(&mux, NULL)){
+		printf("mutex creation error\n");
+		exit(-1);
+	}
+  //falta o destroy
+
+  ht = ht_create(NR_LINES_HT);
+
+  if(fp!=-1)
   {
-    if(m_buf.info==WRITE || m_buf.info==OVERWRITE){
-      buf = (char*)malloc((m_buf.value_length+1)*sizeof(char));
-      read(fp,buf,m_buf.value_length);
-      buf[m_buf.value_length]='\0';
-      ht_set(ht,m_buf.key,buf,1);
-      //printf("%u %s\n",m_buf.key,buf);
-    }else{
-      ht_remove(ht,m_buf.key);
 
+    while(read(fp,&m_buf,sizeof(m_buf))!=0)
+    {
+      if(m_buf.info==WRITE || m_buf.info==OVERWRITE){
+        buf = (char*)malloc((m_buf.value_length+1)*sizeof(char));
+        read(fp,buf,m_buf.value_length);
+        buf[m_buf.value_length]='\0';
+        ht_set(ht,m_buf.key,buf,1);
+        //printf("%u %s\n",m_buf.key,buf);
+      }else{
+        ht_remove(ht,m_buf.key);
+      }
     }
+    close(fp);
+  }
 
+  log_file = open("backup.log",O_RDONLY);//read
+
+  if(log_file!=-1)
+  {
+    while(read(log_file,&m_buf,sizeof(m_buf))!=0)
+    {
+      if(m_buf.info==WRITE || m_buf.info==OVERWRITE){
+        buf = (char*)malloc((m_buf.value_length+1)*sizeof(char));
+        read(fp,buf,m_buf.value_length);
+        buf[m_buf.value_length]='\0';
+        ht_set(ht,m_buf.key,buf,1);
+        //printf("%u %s\n",m_buf.key,buf);
+      }else{
+        ht_remove(ht,m_buf.key);
+      }
+    }
+    close(log_file);
   }
 
 
-  close(fp);
-}
 
 
-  fp = open("backup.txt",O_CREAT|O_WRONLY|O_TRUNC,0600);
-
-  backup_ht();
-
-
-if (fp==-1)
-{
-  printf("Failed to create and open file!\n");
-  exit(-1);
-}
-
-/////////////
 
   struct sockaddr_in server_addr;
 
@@ -348,6 +414,7 @@ if (fp==-1)
   struct sockaddr_in client_addr;
   socklen_t size_addr;
 
+  pthread_create(&client,NULL,log_cycle,(void*)NULL);
   pthread_create(&client,NULL,front_server_alive,(void*)NULL);
   //int new_fd;
   while(1){

@@ -19,9 +19,9 @@ int main(){
 		}
 
 		//printf("start delete\n");
-		for (uint32_t i = 0; i < MAX_VALUES; i +=2){
+		/*for (uint32_t i = 0; i < MAX_VALUES; i +=2){
 			kv_delete(kv, i);
-		}
+		}*/
 		kv_close(kv);
 	}else{
 
