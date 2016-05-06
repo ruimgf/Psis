@@ -13,7 +13,7 @@ int main(int argc, char ** argv){
     int port;
     int op;
 
-    if(argc ==1){
+    if(argc == 1){
 
       port = 9999;
 
@@ -77,7 +77,7 @@ int main(int argc, char ** argv){
         break;
       }
     }
-  
+
     kv_close(sock_fd);
     printf("OK\n");
     exit(0);

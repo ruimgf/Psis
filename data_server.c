@@ -41,7 +41,7 @@ int sock_fd;
 hashtable_t * ht;
 int front_server_pid;
 int data_server_pid;
-
+int port = 10500;
 /////////
 
 void * front_server_alive(void * fd){
@@ -55,7 +55,7 @@ void * front_server_alive(void * fd){
       front_server_pid = fork();
       if(front_server_pid == 0){
         char ** arg;
-        arg = (char **)malloc(3*sizeof(char*));
+        arg = (char **)malloc(4*sizeof(char*));
         arg[0] = (char *)malloc(12*sizeof(char));
         sprintf(arg[0],"front_server");
         //arg[1] = (char *)malloc(12*sizeof(char));
@@ -64,7 +64,9 @@ void * front_server_alive(void * fd){
         //sprintf(arg[2],"0");
         arg[1] = (char*)malloc(10*sizeof(char));
         sprintf(arg[1],"%d",data_server_pid);
-        arg[2] = NULL;
+        arg[2] = (char*)malloc(10*sizeof(char));
+        sprintf(arg[2],"%d",port);
+        arg[3] = NULL;
 
           if(execv("bin/front_server",arg)==-1){
             perror("Error execve:");
@@ -349,7 +351,7 @@ char * buf;
 
 	server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = INADDR_ANY;
-  int port = 10500;
+
   int err = -1;
 
   // bind server
@@ -395,7 +397,14 @@ char * buf;
   front_server_addr.sin_port = htons(front_server_port);
 
   inet_aton(SOCK_ADDRESS, &server_addr.sin_addr);
+  char buf_fifo[10];
   if(comunicar==1){
+    sprintf("%d",port);
+    fifo = open("/tmp/fifo", O_WRONLY);
+    write(fifo,buf_fifo, 10);
+    close(fifo);
+
+    /*
     err = connect(sock_fd1, (const struct sockaddr *) &front_server_addr,sizeof(front_server_addr));
     if (err == -1){
       return(-1);
@@ -406,7 +415,9 @@ char * buf;
     if(send(sock_fd1,&m, sizeof(m),0)==-1){
       return -1;
     }
+
     close(sock_fd1);
+    */
   }
 
   listen(sock_fd, MAX_CLIENT_WAIT);

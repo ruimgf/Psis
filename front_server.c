@@ -63,6 +63,7 @@ void * data_server_alive(void * fd){
 void intHandler(int dumbi){
   //print_list(begin);
   //kill(pid,SIGINT);
+  kill(data_server_pid,SIGINT);
   close(sock_fd);
   exit(0);
 }
@@ -79,6 +80,11 @@ int main(int argc, char * argv[]){
 		printf("socket: error\n");
 		exit(-1);
 	}
+  if (mkfifo("/tmp/fifo", 0666)!=0)
+  {
+    exit(-1);
+  }
+
 
 	server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = INADDR_ANY;
@@ -105,31 +111,53 @@ int main(int argc, char * argv[]){
 
   int pid = 1;
   int father_pid = getpid();
+  int comunicar = 1;
   if(argc > 1){
     sscanf(argv[1],"%d",&data_server_pid);
+    comunicar = 0;
+    sscanf(argv[2],"%d",&port_data_server);
+
   }else{
     pid = fork();
     data_server_pid = pid;
+    port_data_server = 10500;
   }
   message m;
 
   if(pid!=0){
     int new_fd;
-    new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
-    recv(new_fd,(void *)&m, sizeof(m), 0);
-    close(new_fd);
-    port_data_server = m.value_length;
+    /*
+    if(comunicar==1){
+      new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
+      recv(new_fd,(void *)&m, sizeof(m), 0);
+      close(new_fd);
+      port_data_server = m.value_length;
+    }
+    */
+    printf("go accept\n");
+    fifo = open("/tmp/fifo", O_RDONLY);
+  	if (fifo==-1)
+  	{
+      exit(-1);
+  	}
+
+    char buf_fifo[10];
+
+    read(fifo,buf_fifo,10);
+    sscanf(buf_fifo,"%d",port_data_server);
+    close(fifo);
     while(1){
       new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
-
+      printf("accept\n");
       if(new_fd == -1){
         exit(-1);
       }
 
-      m.info = port_data_server;
+      m.info = 10500;
       if(send(new_fd, &m, sizeof(m), 0)==-1){
         return(-1);
       }
+      printf("make send\n");
 
       // faz um send
       close(new_fd);
