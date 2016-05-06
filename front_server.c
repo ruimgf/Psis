@@ -35,7 +35,7 @@ void * data_server_alive(void * fd){
   struct sockaddr_in client_addr;
   socklen_t size_addr;
   while(1){
-    sleep(1);
+    sleep(3);
     waitpid(data_server_pid, &ret,0);
     if(kill(data_server_pid,0)!=0){
       data_server_pid = fork();
@@ -134,6 +134,7 @@ int main(int argc, char * argv[]){
       port_data_server = m.value_length;
     }
     */
+    int fifo;
     printf("go accept\n");
     fifo = open("/tmp/fifo", O_RDONLY);
   	if (fifo==-1)
@@ -144,7 +145,7 @@ int main(int argc, char * argv[]){
     char buf_fifo[10];
 
     read(fifo,buf_fifo,10);
-    sscanf(buf_fifo,"%d",port_data_server);
+    sscanf(buf_fifo,"%d",&port_data_server);
     close(fifo);
     while(1){
       new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);

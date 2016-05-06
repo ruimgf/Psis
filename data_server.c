@@ -398,8 +398,9 @@ char * buf;
 
   inet_aton(SOCK_ADDRESS, &server_addr.sin_addr);
   char buf_fifo[10];
+  int fifo;
   if(comunicar==1){
-    sprintf("%d",port);
+    sprintf(buf_fifo,"%d",port);
     fifo = open("/tmp/fifo", O_WRONLY);
     write(fifo,buf_fifo, 10);
     close(fifo);
