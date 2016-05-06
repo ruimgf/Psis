@@ -334,7 +334,7 @@ char * buf;
     close(log_file);
   }
 
-
+  log_file = open("backup.log",O_CREAT|O_WRONLY);
 
 
 
