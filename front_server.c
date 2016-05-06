@@ -80,6 +80,11 @@ int main(int argc, char * argv[]){
 		printf("socket: error\n");
 		exit(-1);
 	}
+  if (mkfifo("/tmp/fifo", 0666)!=0)
+  {
+    exit(-1);
+  }
+
 
 	server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = INADDR_ANY;
@@ -121,14 +126,26 @@ int main(int argc, char * argv[]){
 
   if(pid!=0){
     int new_fd;
-
+    /*
     if(comunicar==1){
       new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
       recv(new_fd,(void *)&m, sizeof(m), 0);
       close(new_fd);
       port_data_server = m.value_length;
     }
+    */
     printf("go accept\n");
+    fifo = open("/tmp/fifo", O_RDONLY);
+  	if (fifo==-1)
+  	{
+      exit(-1);
+  	}
+
+    char buf_fifo[10];
+
+    read(fifo,buf_fifo,10);
+    sscanf(buf_fifo,"%d",port_data_server);
+    close(fifo);
     while(1){
       new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
       printf("accept\n");

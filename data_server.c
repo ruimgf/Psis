@@ -285,7 +285,7 @@ if (fp==-1)
 
 	server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = INADDR_ANY;
-  
+
   int err = -1;
 
   // bind server
@@ -331,7 +331,14 @@ if (fp==-1)
   front_server_addr.sin_port = htons(front_server_port);
 
   inet_aton(SOCK_ADDRESS, &server_addr.sin_addr);
+  char buf_fifo[10];
   if(comunicar==1){
+    sprintf("%d",port);
+    fifo = open("/tmp/fifo", O_WRONLY);
+    write(fifo,buf_fifo, 10);
+    close(fifo);
+
+    /*
     err = connect(sock_fd1, (const struct sockaddr *) &front_server_addr,sizeof(front_server_addr));
     if (err == -1){
       return(-1);
@@ -342,7 +349,9 @@ if (fp==-1)
     if(send(sock_fd1,&m, sizeof(m),0)==-1){
       return -1;
     }
+
     close(sock_fd1);
+    */
   }
 
   listen(sock_fd, MAX_CLIENT_WAIT);
