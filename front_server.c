@@ -24,14 +24,50 @@
 #include <errno.h>
 
 int sock_fd;
+int data_server_pid;
+int port = 9999;
+int port_data_server;
+
+void * data_server_alive(void * fd){
+  int ret;
+  message m;
+  int fdd;
+  struct sockaddr_in client_addr;
+  socklen_t size_addr;
+  while(1){
+    sleep(1);
+    waitpid(data_server_pid, &ret,0);
+    if(kill(data_server_pid,0)!=0){
+      data_server_pid = fork();
+      if(data_server_pid == 0){
+        char ** arg;
+        arg = (char **)malloc(4*sizeof(char*));
+        arg[0] = (char *)malloc(12*sizeof(char));
+        sprintf(arg[0],"data_server");
+        arg[1] = (char *)malloc(12*sizeof(char));
+        sprintf(arg[1],"%d",port);
+        arg[2] = (char *)malloc(sizeof(int));
+        sprintf(arg[2],"0");
+        arg[3] = NULL;
+
+          if(execv("bin/data_server",arg)==-1){
+            perror("Error execve:");
+          }
+
+      }
+    }
+  }
+
+}
 
 void intHandler(int dumbi){
   //print_list(begin);
+  //kill(pid,SIGINT);
   close(sock_fd);
   exit(0);
 }
 
-int main(){
+int main(int argc, char * argv[]){
 
   struct sockaddr_in server_addr;
 
@@ -46,7 +82,7 @@ int main(){
 
 	server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = INADDR_ANY;
-  int port = 9999;
+
   int err = -1;
 
   // bind server
@@ -62,23 +98,34 @@ int main(){
 
   listen(sock_fd, MAX_CLIENT_WAIT);
   pthread_t client;
+
   struct sockaddr_in client_addr;
   socklen_t size_addr;
-  int new_fd;
-  int pid = fork();
+  pthread_create(&client,NULL,data_server_alive,(void*)NULL);
+
+  int pid = 1;
+  int father_pid = getpid();
+  if(argc > 1){
+    sscanf(argv[1],"%d",&data_server_pid);
+  }else{
+    pid = fork();
+    data_server_pid = pid;
+  }
   message m;
-  int port_data_server;
+
   if(pid!=0){
+    int new_fd;
     new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
-      recv(new_fd,(void *)&m, sizeof(m), 0);
+    recv(new_fd,(void *)&m, sizeof(m), 0);
     close(new_fd);
-    port_data_server = m.info;
+    port_data_server = m.value_length;
     while(1){
       new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
 
       if(new_fd == -1){
         exit(-1);
       }
+
       m.info = port_data_server;
       if(send(new_fd, &m, sizeof(m), 0)==-1){
         return(-1);
@@ -92,20 +139,24 @@ int main(){
 
   }else{
 
-    /*
+
     //excve e passa porta por argumento
     char ** arg;
-    arg = (char **)malloc(3*sizeof(char*));
+    arg = (char **)malloc(5*sizeof(char*));
     arg[0] = (char *)malloc(12*sizeof(char));
     sprintf(arg[0],"data_server");
     arg[1] = (char *)malloc(12*sizeof(char));
     sprintf(arg[1],"%d",port);
-    arg[2] = NULL;
+    arg[2] = (char *)malloc(sizeof(char));
+    sprintf(arg[2],"1");
+    arg[3] = (char * )malloc(sizeof(char));
+    sprintf(arg[3],"%d",father_pid);
+    arg[4]=NULL;
 
     if(execv("bin/data_server",arg)==-1){
       perror("Error execve:");
     }
-    */
+
   }
 
 

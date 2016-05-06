@@ -20,7 +20,7 @@
 #include <arpa/inet.h>
 
 #define MAX_THREADS 20
-
+#define NR_LINES_HT 10
 //////////////////
 
 //backup jorge
@@ -34,15 +34,67 @@
 int fp;
 
 //////////////////
-
+// variaveis globais
 pthread_mutex_t mux[10];
-
-
-
 int sock_fd;
-
 hashtable_t * ht;
+int front_server_pid;
+int data_server_pid;
 
+/////////
+
+void * front_server_alive(void * fd){
+
+  int ret;
+  int data_server_pid = getpid();
+  while(1){
+    sleep(3);
+    waitpid(front_server_pid, &ret,0);
+    if(kill(front_server_pid,0)!=0){
+      front_server_pid = fork();
+      if(front_server_pid == 0){
+        char ** arg;
+        arg = (char **)malloc(3*sizeof(char*));
+        arg[0] = (char *)malloc(12*sizeof(char));
+        sprintf(arg[0],"front_server");
+        //arg[1] = (char *)malloc(12*sizeof(char));
+        //sprintf(arg[1],"%d",port);
+        //arg[2] = (char *)malloc(sizeof(int));
+        //sprintf(arg[2],"0");
+        arg[1] = (char*)malloc(10*sizeof(char));
+        sprintf(arg[1],"%d",data_server_pid);
+        arg[2] = NULL;
+
+          if(execv("bin/front_server",arg)==-1){
+            perror("Error execve:");
+          }
+
+      }
+    }
+  }
+
+
+}
+
+int backup_ht(){
+    int i;
+    item_t * aux;
+    message m;
+    for( i = 0 ; i < ht-> line_nr ; i++  ){
+      aux = ht->table[i]->next;
+      while (aux!=NULL) {
+        m.info = WRITE;
+        m.key = aux->key;
+        m.value_length = strlen(aux->value) + 1;
+        write(fp,&m,sizeof(m));////backup jorge
+        write(fp,aux->value,strlen(aux->value) + 1);
+        aux=aux->next;
+      }
+
+    }
+
+    return 0;
+}
 
 void intHandler(int dumbi){
   close(fp);
@@ -57,7 +109,7 @@ int op_read(int new_fd, message m){
 
   item_t * aux;
   message m1;
-  char * buf,*buf_send;
+  char * buf,* buf_send;
 
   buf = ht_get( ht , m.key );
 
@@ -82,48 +134,23 @@ int op_read(int new_fd, message m){
       return -1;
     }
   }
-
-
-  return 35;//so pus para desaparecer o warning
+  return 0;
 }
 
 
-int backup_ht(){
-    int i;
-    item_t * aux;
-    message m;
-    for( i = 0 ; i < ht-> line_nr ; i++  ){
-      aux = ht->table[i]->next;
-      while (aux!=NULL) {
-        m.info = WRITE;
-        m.key = aux->key;
-        m.value_length = strlen(aux->value) + 1;
-        write(fp,&m,sizeof(m));////backup jorge
-        write(fp,aux->value,strlen(aux->value) + 1);
-        aux=aux->next;
-      }
-
-    }
-
-    return 35;//so pus para desaparecer o warning
-
-}
 
 int op_write(int new_fd, message m){
-  char * buf; // tem de ser alterado isto é so para compilar
+  char * buf;
   message m1;
-
   buf = (char *)malloc(sizeof(char) * (m.value_length) );
   recv(new_fd,buf,m.value_length, 0);
-  //printf("key %u value %s \n", m.key, buf);
 
   if (m.info == OVERWRITE) {
     m1.info = ht_set(ht,m.key,buf,1);
-
   }else{
     m1.info = ht_set(ht,m.key,buf,0);
   }
-  //m.value_length--;
+
   if (m1.info==0) {
     write(fp,&m,sizeof(m));////backup jorge
     write(fp,buf,strlen(buf));
@@ -131,7 +158,6 @@ int op_write(int new_fd, message m){
   if(send(new_fd, &m1, sizeof(m1), 0)==-1){
     return(-1);
   }
-
   free(buf);
   return 0;
 }
@@ -152,31 +178,35 @@ int op_delete(int new_fd ,message m){
 void * thread(void * fd){
 
   int new_fd = *((int*)(fd));
-  char buf[100];
-
+  free(fd);
   message m;
 
   int naosair = 1;
   while (naosair) {
-
       recv(new_fd,(void *)&m, sizeof(m), 0);
-      pthread_mutex_lock(&mux[m.key%10]);
       switch (m.info) {
         case READ:
+          pthread_mutex_lock(&mux[ht_hash(ht,m.key)]);
           op_read(new_fd, m);
+          pthread_mutex_unlock(&mux[ht_hash(ht,m.key)]);
           break;
         case WRITE:
+          pthread_mutex_lock(&mux[ht_hash(ht,m.key)]);
           op_write(new_fd,m);
+          pthread_mutex_unlock(&mux[ht_hash(ht,m.key)]);
           break;
         case OVERWRITE:
+          pthread_mutex_lock(&mux[ht_hash(ht,m.key)]);
           op_write(new_fd,m);
+          pthread_mutex_unlock(&mux[ht_hash(ht,m.key)]);
           break;
         case DELETE:
+          pthread_mutex_lock(&mux[ht_hash(ht,m.key)]);
           op_delete(new_fd,m);
+          pthread_mutex_unlock(&mux[ht_hash(ht,m.key)]);
           break;
         case EXIT :
           naosair = 0;
-          close(fp);//teste
           #ifdef DEBUG
           printf("client exit\n");
           #endif
@@ -184,7 +214,8 @@ void * thread(void * fd){
         default:
           break;
       }
-      pthread_mutex_unlock(&mux[m.key%10]);
+
+
   }
   close(new_fd);
   int ret=0;
@@ -203,7 +234,7 @@ char * buf;
 
 signal(SIGINT, intHandler);
 fp = open("backup.txt",O_RDONLY);//read
-ht = ht_create(10);
+ht = ht_create(NR_LINES_HT);
 if(fp!=-1){
 
   while(read(fp,&m_buf,sizeof(m_buf))!=0)
@@ -282,8 +313,14 @@ if (fp==-1)
 
   front_server_addr.sin_family = AF_INET;
   int front_server_port;
-  if(argc > 1){
+  int comunicar = 0;
+  if(argc > 2){
     sscanf(argv[1],"%d",&front_server_port);
+    sscanf(argv[2],"%d",&comunicar);
+    if(argc > 3){
+      sscanf(argv[3],"%d",&front_server_pid);
+      printf("%d\n",front_server_pid);
+    }
   }else{
     printf("need to specify front_server_port\n");
     exit(-1);
@@ -292,37 +329,38 @@ if (fp==-1)
   front_server_addr.sin_port = htons(front_server_port);
 
   inet_aton(SOCK_ADDRESS, &server_addr.sin_addr);
+  if(comunicar==1){
+    err = connect(sock_fd1, (const struct sockaddr *) &front_server_addr,sizeof(front_server_addr));
+    if (err == -1){
+      return(-1);
+    }
+    message m;
+    m.info = SEND_DATA_SERVER_PORT;
+    m.value_length = port;
+    if(send(sock_fd1,&m, sizeof(m),0)==-1){
+      return -1;
+    }
+    close(sock_fd1);
+  }
 
-  err = connect(sock_fd1, (const struct sockaddr *) &front_server_addr,sizeof(front_server_addr));
-  if (err == -1){
-    return(-1);
-  }
-  message m;
-  m.info = port;
-  if(send(sock_fd1,&m, sizeof(m),0)==-1){
-    return -1;
-  }
-  close(sock_fd1);
   listen(sock_fd, MAX_CLIENT_WAIT);
   pthread_t client;
   struct sockaddr_in client_addr;
   socklen_t size_addr;
 
-
-  int new_fd;
+  pthread_create(&client,NULL,front_server_alive,(void*)NULL);
+  //int new_fd;
   while(1){
-    new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
+    int * new_fd = (int *)malloc(sizeof(int));
+    *new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
 
-    if(new_fd == -1){
+    if(*new_fd == -1){
       exit(-1);
     }
     #ifdef DEBUG
     printf("accept\n");
     #endif
-    pthread_create(&client,NULL,thread,(void*)&new_fd);
-    // wait for thread colect kv_descriptor
-    sleep(1);
-
+    pthread_create(&client,NULL,thread,(void*)new_fd);
 
   }
 

@@ -29,7 +29,7 @@ client_prof2.o: cli-exe-par-1.c psiskv.h
 
 
 front_server: front_server.o
-	gcc obj/front_server.o -o bin/front_server
+	gcc obj/front_server.o -pthread -o bin/front_server
 
 data_server: data_server.o list.o
 	gcc obj/data_server.o obj/list.o -g -pthread -o bin/data_server

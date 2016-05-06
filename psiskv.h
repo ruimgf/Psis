@@ -7,7 +7,7 @@
 #define READ 3
 #define DELETE 4
 #define EXIT 8
-
+#define SEND_DATA_SERVER_PORT 5
 
 #define  MAX_CLIENT_WAIT 20
 

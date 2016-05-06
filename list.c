@@ -112,7 +112,7 @@ int delete_entry(item_t * begin, unsigned int key)
         aux2=aux2->next;
     }
 
-    return -1; 
+    return -1;
 }
 
 
@@ -188,7 +188,7 @@ int ht_remove( hashtable_t *hashtable, unsigned int key) {
 	int bin = 0;
   item_t * next;
 	bin = ht_hash( hashtable, key );
-  next = hashtable->table[ bin ];
+  next = hashtable->table[bin];
 	return delete_entry(next,key);
 
 }
