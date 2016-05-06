@@ -25,10 +25,12 @@ int kv_connect(char * kv_server_ip, int kv_server_port){
   inet_aton(SOCK_ADDRESS, &server_addr.sin_addr);
 
   err = connect(sock_fd, (const struct sockaddr *) &server_addr,sizeof(server_addr));
+  printf("connect KV front_server\n");
   if (err == -1){
     return(-1);
   }
   recv(sock_fd,&m,sizeof(m), 0);
+  printf("reci\n");
   printf("recv %d\n",m.info);
   close(sock_fd);
 
