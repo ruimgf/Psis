@@ -19,6 +19,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+//#include <sys/types.h>
+#include <sys/wait.h>
+
 #define MAX_THREADS 20
 
 #include <errno.h>
@@ -34,6 +37,7 @@ void * data_server_alive(void * fd){
   int fdd;
   struct sockaddr_in client_addr;
   socklen_t size_addr;
+  int front_server_pid = getpid();
   while(1){
     sleep(3);
     waitpid(data_server_pid, &ret,0);
@@ -41,19 +45,34 @@ void * data_server_alive(void * fd){
       data_server_pid = fork();
       if(data_server_pid == 0){
         char ** arg;
-        arg = (char **)malloc(4*sizeof(char*));
+        arg = (char **)malloc(5*sizeof(char*));
         arg[0] = (char *)malloc(12*sizeof(char));
         sprintf(arg[0],"data_server");
         arg[1] = (char *)malloc(12*sizeof(char));
         sprintf(arg[1],"%d",port);
-        arg[2] = (char *)malloc(sizeof(int));
-        sprintf(arg[2],"0");
-        arg[3] = NULL;
+        arg[2] = (char *)malloc(1*sizeof(char));
+        sprintf(arg[2],"1");
+        arg[3] = (char *)malloc(4*sizeof(char));
+        sprintf(arg[3],"%d",front_server_pid);
+        arg[4] = NULL;
 
           if(execv("bin/data_server",arg)==-1){
             perror("Error execve:");
           }
 
+      }else{
+        int fifo;
+        fifo = open("/tmp/fifo", O_RDONLY);
+      	if (fifo==-1)
+      	{
+          exit(-1);
+      	}
+
+        char buf_fifo[10];
+
+        read(fifo,buf_fifo,10);
+        sscanf(buf_fifo,"%d",&port_data_server);
+        close(fifo);
       }
     }
   }
@@ -80,9 +99,11 @@ int main(int argc, char * argv[]){
 		printf("socket: error\n");
 		exit(-1);
 	}
+
   if (mkfifo("/tmp/fifo", 0666)!=0)
   {
-    exit(-1);
+
+    printf("fifo already exist\n");
   }
 
 
@@ -134,27 +155,33 @@ int main(int argc, char * argv[]){
       port_data_server = m.value_length;
     }
     */
-    int fifo;
+    if(comunicar != 0){
+      int fifo;
+      fifo = open("/tmp/fifo", O_RDONLY);
+    	if (fifo==-1)
+    	{
+        exit(-1);
+    	}
+
+      char buf_fifo[10];
+
+      read(fifo,buf_fifo,10);
+      sscanf(buf_fifo,"%d",&port_data_server);
+      close(fifo);
+
+
+    }
+
     printf("go accept\n");
-    fifo = open("/tmp/fifo", O_RDONLY);
-  	if (fifo==-1)
-  	{
-      exit(-1);
-  	}
 
-    char buf_fifo[10];
-
-    read(fifo,buf_fifo,10);
-    sscanf(buf_fifo,"%d",&port_data_server);
-    close(fifo);
     while(1){
       new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
-      printf("accept\n");
+      printf("accept front_server\n");
       if(new_fd == -1){
         exit(-1);
       }
 
-      m.info = 10500;
+      m.info = port_data_server;
       if(send(new_fd, &m, sizeof(m), 0)==-1){
         return(-1);
       }

@@ -19,6 +19,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <sys/types.h>
+#include <sys/wait.h>
+
 #define MAX_THREADS 20
 #define NR_LINES_HT 10
 //////////////////
@@ -52,8 +55,11 @@ void * front_server_alive(void * fd){
     sleep(3);
     waitpid(front_server_pid, &ret,0);
     if(kill(front_server_pid,0)!=0){
+      printf("go lauch\n");
+
       front_server_pid = fork();
       if(front_server_pid == 0){
+        printf("fork\n");
         char ** arg;
         arg = (char **)malloc(4*sizeof(char*));
         arg[0] = (char *)malloc(12*sizeof(char));
@@ -67,7 +73,7 @@ void * front_server_alive(void * fd){
         arg[2] = (char*)malloc(10*sizeof(char));
         sprintf(arg[2],"%d",port);
         arg[3] = NULL;
-
+        printf("go execv\n");
           if(execv("bin/front_server",arg)==-1){
             perror("Error execve:");
           }
@@ -381,7 +387,7 @@ char * buf;
 
   front_server_addr.sin_family = AF_INET;
   int front_server_port;
-  int comunicar = 0;
+  int comunicar = 1;
   if(argc > 2){
     sscanf(argv[1],"%d",&front_server_port);
     sscanf(argv[2],"%d",&comunicar);
@@ -393,7 +399,7 @@ char * buf;
     printf("need to specify front_server_port\n");
     exit(-1);
   }
-
+  comunicar = 1;
   front_server_addr.sin_port = htons(front_server_port);
 
   inet_aton(SOCK_ADDRESS, &server_addr.sin_addr);
@@ -426,7 +432,7 @@ char * buf;
   struct sockaddr_in client_addr;
   socklen_t size_addr;
 
-  pthread_create(&client,NULL,log_cycle,(void*)NULL);
+  //pthread_create(&client,NULL,log_cycle,(void*)NULL);
   pthread_create(&client,NULL,front_server_alive,(void*)NULL);
   //int new_fd;
   while(1){
