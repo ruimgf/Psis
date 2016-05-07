@@ -39,7 +39,8 @@ int log_file;//ficheiro log
 
 //////////////////
 // variaveis globais
-pthread_mutex_t mux;
+pthread_mutex_t mux[10];
+pthread_mutex_t muxfile;
 int sock_fd;
 hashtable_t * ht;
 int front_server_pid;
@@ -113,9 +114,10 @@ void * log_cycle(void * name)
 
   while(1)
   {
-    //for (i = 0; i < NR_LINES_HT; i++) {
-      pthread_mutex_lock(&mux);
-    //}
+    for (i = 0; i < NR_LINES_HT; i++) {
+      pthread_mutex_lock(&mux[i]);
+    }
+    pthread_mutex_lock(&muxfile);
     printf("lock\n");
 
     close(log_file);
@@ -138,9 +140,10 @@ void * log_cycle(void * name)
       exit(-1);
     }
 
-    //for (i = 0; i < NR_LINES_HT; i++) {
-      pthread_mutex_unlock(&mux);
-    //}
+    for (i = 0; i < NR_LINES_HT; i++) {
+      pthread_mutex_unlock(&mux[i]);
+    }
+      pthread_mutex_unlock(&muxfile);
     printf("unlock\n");
     sleep(60);
   }
@@ -211,8 +214,10 @@ int op_write(int new_fd, message m){
   }
 
   if (m1.info==0) {
+    pthread_mutex_lock(&muxfile);
     write(log_file,&m,sizeof(m));////backup jorge
     write(log_file,buf,strlen(buf));
+    pthread_mutex_unlock(&muxfile);
   }
   if(send(new_fd, &m1, sizeof(m1), 0)==-1){
     return(-1);
@@ -225,8 +230,11 @@ int op_delete(int new_fd ,message m){
   message m1;
 
   m1.info = ht_remove(ht,m.key);
+
   if (m1.info==0) {
+    pthread_mutex_lock(&muxfile);
     write(log_file,&m,sizeof(m));////backup jorges
+    pthread_mutex_unlock(&muxfile);
   }
   if(send(new_fd, &m1, sizeof(m1), 0)==-1){
     return(-1);
@@ -245,24 +253,24 @@ void * thread(void * fd){
       recv(new_fd,(void *)&m, sizeof(m), 0);
       switch (m.info) {
         case READ:
-          pthread_mutex_lock(&mux);
+          pthread_mutex_lock(&mux[m.key%10]);
           op_read(new_fd, m);
-          pthread_mutex_unlock(&mux);
+          pthread_mutex_unlock(&mux[m.key%10]);
           break;
         case WRITE:
-          pthread_mutex_lock(&mux);
+          pthread_mutex_lock(&mux[m.key%10]);
           op_write(new_fd,m);
-          pthread_mutex_unlock(&mux);
+          pthread_mutex_unlock(&mux[m.key%10]);
           break;
         case OVERWRITE:
-          pthread_mutex_lock(&mux);
+          pthread_mutex_lock(&mux[m.key%10]);
           op_write(new_fd,m);
-          pthread_mutex_unlock(&mux);
+          pthread_mutex_unlock(&mux[m.key%10]);
           break;
         case DELETE:
-          pthread_mutex_lock(&mux);
+          pthread_mutex_lock(&mux[m.key%10]);
           op_delete(new_fd,m);
-          pthread_mutex_unlock(&mux);
+          pthread_mutex_unlock(&mux[m.key%10]);
           break;
         case EXIT :
           naosair = 0;
@@ -292,10 +300,16 @@ message m_buf;
 char * buf;
 
   signal(SIGINT, intHandler);
-
+  int i;
   fp = open("backup.txt",O_RDONLY);//read
+  for(i = 0;i< 10;i++){
+    if(0 != pthread_mutex_init(&mux[i], NULL)){
+  		printf("mutex creation error\n");
+  		exit(-1);
+  	}
 
-  if(0 != pthread_mutex_init(&mux, NULL)){
+  }
+  if(0 != pthread_mutex_init(&muxfile, NULL)){
 		printf("mutex creation error\n");
 		exit(-1);
 	}

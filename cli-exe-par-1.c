@@ -13,20 +13,20 @@ int main(){
 	if(fork() == 0){
 
 		int kv = kv_connect("127.0.0.1", 9999);
-		for (uint32_t i = 0; i < MAX_VALUES; i +=2){
+		for (uint32_t i = 0; i < MAX_VALUES; i +=1){
 			sprintf(linha, "%u", i);
 			kv_write(kv, i , linha, strlen(linha)+1, 0);
 		}
 
 		//printf("start delete\n");
-		/*for (uint32_t i = 0; i < MAX_VALUES; i +=2){
+		for (uint32_t i = 0; i < MAX_VALUES; i +=2){
 			kv_delete(kv, i);
-		}*/
+		}
 		kv_close(kv);
 	}else{
 
 		int kv = kv_connect("127.0.0.1", 9999);
-		for (uint32_t i = 1; i < MAX_VALUES; i +=2){
+		for (uint32_t i = 1; i < MAX_VALUES; i +=1){
 			//printf("2 : %u\n",i);
 			sprintf(linha, "%u", i);
 			kv_write(kv, 2*i , linha, strlen(linha)+1, 0);
@@ -35,7 +35,7 @@ int main(){
 
 		wait(NULL);
 		printf("writing values\n");
-		for (uint32_t i = 1; i < MAX_VALUES; i +=2){
+		for (uint32_t i = 1; i < MAX_VALUES; i +=1){
 			sprintf(linha, "%u", i);
 			//printf("insert %u \n",i);
 			kv_write(kv, i , linha, strlen(linha)+1, 0);
