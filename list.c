@@ -207,3 +207,19 @@ char * ht_get( hashtable_t *hashtable, unsigned int key ) {
   }
 
 }
+
+void clean_hashtable(hashtable_t * hashtable){
+  int i;
+  item_t * aux1 , * aux2;
+  for (i = 0 ; i < hashtable->line_nr; i++) {
+    aux1=hashtable->table[i]->next;
+    while(aux1!=NULL){
+      aux2=aux1->next;
+      free(aux1->value);
+      free(aux1);
+      aux1 = aux2;
+    }
+  }
+  free(hashtable->table);
+  free(hashtable);
+}

@@ -164,6 +164,7 @@ void intHandler(int dumbi){
   backup_ht();
   close(fp);
   close(sock_fd);
+  clean_hashtable(ht);
   exit(0);
 }
 
