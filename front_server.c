@@ -102,7 +102,6 @@ int main(int argc, char * argv[]){
 
   if (mkfifo("/tmp/fifo", 0666)!=0)
   {
-
     printf("fifo already exist\n");
   }
 
@@ -141,30 +140,22 @@ int main(int argc, char * argv[]){
   }else{
     pid = fork();
     data_server_pid = pid;
-    port_data_server = 10500;
   }
   message m;
 
   if(pid!=0){
     int new_fd;
-    /*
-    if(comunicar==1){
-      new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
-      recv(new_fd,(void *)&m, sizeof(m), 0);
-      close(new_fd);
-      port_data_server = m.value_length;
-    }
-    */
     if(comunicar != 0){
+
       int fifo;
       fifo = open("/tmp/fifo", O_RDONLY);
-    	if (fifo==-1)
+
+      if (fifo==-1)
     	{
         exit(-1);
     	}
 
       char buf_fifo[10];
-
       read(fifo,buf_fifo,10);
       sscanf(buf_fifo,"%d",&port_data_server);
       close(fifo);
@@ -195,19 +186,16 @@ int main(int argc, char * argv[]){
 
   }else{
 
-
     //excve e passa porta por argumento
     char ** arg;
-    arg = (char **)malloc(5*sizeof(char*));
+    arg = (char **)malloc(4*sizeof(char*));
     arg[0] = (char *)malloc(12*sizeof(char));
     sprintf(arg[0],"data_server");
     arg[1] = (char *)malloc(12*sizeof(char));
     sprintf(arg[1],"%d",port);
-    arg[2] = (char *)malloc(sizeof(char));
-    sprintf(arg[2],"1");
-    arg[3] = (char * )malloc(sizeof(char));
-    sprintf(arg[3],"%d",father_pid);
-    arg[4]=NULL;
+    arg[2] = (char * )malloc(sizeof(char));
+    sprintf(arg[2],"%d",father_pid);
+    arg[3]=NULL;
 
     if(execv("bin/data_server",arg)==-1){
       perror("Error execve:");
@@ -215,9 +203,6 @@ int main(int argc, char * argv[]){
 
   }
 
-
-
-//  intHandler(0);
   return 0;
 
 }

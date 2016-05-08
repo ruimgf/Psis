@@ -177,13 +177,13 @@ int op_read(int new_fd, message m){
   buf = ht_get( ht , m.key );
 
   if(buf==NULL){
-    m1.info = -2 ;
+    m1.info = - 2 ;
     if(send(new_fd,&m1, sizeof(m1),0)==-1){
       return -1;
     }
     return 0;
   }else{
-    m1.info = strlen(buf) +1;
+    m1.info = strlen(buf) + 1;
     if(send(new_fd,&m1, sizeof(m1),0)==-1){
       return -1;
     }
@@ -201,17 +201,17 @@ int op_read(int new_fd, message m){
 }
 
 
-
 int op_write(int new_fd, message m){
   char * buf;
-  message m1;
+  message m_send;
+
   buf = (char *)malloc(sizeof(char) * (m.value_length) );
   recv(new_fd,buf,m.value_length, 0);
 
   if (m.info == OVERWRITE) {
-    m1.info = ht_set(ht,m.key,buf,1);
+    m_send.info = ht_set(ht,m.key,buf,1);
   }else{
-    m1.info = ht_set(ht,m.key,buf,0);
+    m_send.info = ht_set(ht,m.key,buf,0);
   }
 
   if (m1.info==0) {
@@ -220,28 +220,32 @@ int op_write(int new_fd, message m){
     write(log_file,buf,m.value_length);
     pthread_mutex_unlock(&muxfile);
   }
-  if(send(new_fd, &m1, sizeof(m1), 0)==-1){
+
+  if(send(new_fd, &m_send, sizeof(m_send), 0)==-1){
     return(-1);
   }
+
   free(buf);
   return 0;
 }
 
+
 int op_delete(int new_fd ,message m){
-  message m1;
+  message m_send;
 
-  m1.info = ht_remove(ht,m.key);
+  m_send.info = ht_remove(ht,m.key);
 
-  if (m1.info==0) {
+  if (m_send.info==0) {
     pthread_mutex_lock(&muxfile);
     write(log_file,&m,sizeof(m));////backup jorges
     pthread_mutex_unlock(&muxfile);
   }
-  if(send(new_fd, &m1, sizeof(m1), 0)==-1){
+  if(send(new_fd, &m_send, sizeof(m_send), 0)==-1){
     return(-1);
   }
   return 0;
 }
+
 
 void * thread(void * fd){
 
@@ -295,21 +299,31 @@ void * thread(void * fd){
 
 int main(int argc, char *argv[]){
 
-/////////////
+  message m_buf;
 
-message m_buf;
-char * buf;
+  char * buf;
+
+  if(argc > 1){
+    sscanf(argv[1],"%d",&front_server_port);
+    if(argc > 2){
+      sscanf(argv[2],"%d",&front_server_pid);
+      printf("%d\n",front_server_pid);
+    }
+  }else{
+    printf("need to specify front_server_port\n");
+    exit(-1);
+  }
 
   signal(SIGINT, intHandler);
-  int i;
 
+  int i;
   for(i = 0;i< 10;i++){
     if(0 != pthread_mutex_init(&mux[i], NULL)){
   		printf("mutex creation error\n");
   		exit(-1);
   	}
-
   }
+
   if(0 != pthread_mutex_init(&muxfile, NULL)){
 		printf("mutex creation error\n");
 		exit(-1);
@@ -357,12 +371,10 @@ char * buf;
     close(log_file);
   }
   remove("backup.log");
-  log_file = open("backup.log",O_CREAT|O_WRONLY);
+  log_file = open("backup.log",O_CREAT | O_WRONLY);
 
   struct sockaddr_in server_addr;
-
   sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-
 	if (sock_fd == -1){
 		printf("socket: error\n");
 		exit(-1);
@@ -370,10 +382,8 @@ char * buf;
 
 	server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = INADDR_ANY;
-
+  // go bind
   int err = -1;
-
-  // bind server
   while(1){
     server_addr.sin_port = htons(port);
     err = bind(sock_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
@@ -389,57 +399,16 @@ char * buf;
     printf("sucess \n");
   #endif
 
-  struct sockaddr_in front_server_addr;
-  socklen_t len_endereco_1;
-  int err1;
-
-  int sock_fd1 = socket(AF_INET, SOCK_STREAM, 0);
-  if (sock_fd1 == -1){
-    return(-1);
-  }
-
-  front_server_addr.sin_family = AF_INET;
-  int front_server_port;
-  int comunicar = 1;
-  if(argc > 2){
-    sscanf(argv[1],"%d",&front_server_port);
-    sscanf(argv[2],"%d",&comunicar);
-    if(argc > 3){
-      sscanf(argv[3],"%d",&front_server_pid);
-      printf("%d\n",front_server_pid);
-    }
-  }else{
-    printf("need to specify front_server_port\n");
-    exit(-1);
-  }
-  comunicar = 1;
-  front_server_addr.sin_port = htons(front_server_port);
-
-  inet_aton(SOCK_ADDRESS, &server_addr.sin_addr);
+  // tell front_server binded port
   char buf_fifo[10];
   int fifo;
-  if(comunicar==1){
-    sprintf(buf_fifo,"%d",port);
-    fifo = open("/tmp/fifo", O_WRONLY);
-    write(fifo,buf_fifo, 10);
-    close(fifo);
+  sprintf(buf_fifo,"%d",port);
+  fifo = open("/tmp/fifo", O_WRONLY);
+  write(fifo,buf_fifo, 10);
+  close(fifo);
 
-    /*
-    err = connect(sock_fd1, (const struct sockaddr *) &front_server_addr,sizeof(front_server_addr));
-    if (err == -1){
-      return(-1);
-    }
-    message m;
-    m.info = SEND_DATA_SERVER_PORT;
-    m.value_length = port;
-    if(send(sock_fd1,&m, sizeof(m),0)==-1){
-      return -1;
-    }
 
-    close(sock_fd1);
-    */
-  }
-
+  //listen
   listen(sock_fd, MAX_CLIENT_WAIT);
   pthread_t client;
   struct sockaddr_in client_addr;
@@ -447,7 +416,7 @@ char * buf;
 
   pthread_create(&client,NULL,log_cycle,(void*)NULL);
   pthread_create(&client,NULL,front_server_alive,(void*)NULL);
-  //int new_fd;
+
   while(1){
     int * new_fd = (int *)malloc(sizeof(int));
     *new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
@@ -455,6 +424,7 @@ char * buf;
     if(*new_fd == -1){
       exit(-1);
     }
+
     #ifdef DEBUG
     printf("accept\n");
     #endif
@@ -462,7 +432,6 @@ char * buf;
 
   }
 
-//  intHandler(0);
   return 0;
 
 }
