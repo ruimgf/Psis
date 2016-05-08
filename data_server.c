@@ -216,7 +216,7 @@ int op_write(int new_fd, message m){
   if (m1.info==0) {
     pthread_mutex_lock(&muxfile);
     write(log_file,&m,sizeof(m));////backup jorge
-    write(log_file,buf,strlen(buf));
+    write(log_file,buf,m.value_length);
     pthread_mutex_unlock(&muxfile);
   }
   if(send(new_fd, &m1, sizeof(m1), 0)==-1){
@@ -301,7 +301,7 @@ char * buf;
 
   signal(SIGINT, intHandler);
   int i;
-  fp = open("backup.txt",O_RDONLY);//read
+
   for(i = 0;i< 10;i++){
     if(0 != pthread_mutex_init(&mux[i], NULL)){
   		printf("mutex creation error\n");
@@ -317,50 +317,48 @@ char * buf;
 
   ht = ht_create(NR_LINES_HT);
 
+  fp = open("backup.txt",O_RDONLY);//read
   if(fp!=-1)
   {
-
+    printf("\nbackup.txt is going to be loaded!\n\n");
     while(read(fp,&m_buf,sizeof(m_buf))!=0)
     {
       if(m_buf.info==WRITE || m_buf.info==OVERWRITE){
-        buf = (char*)malloc((m_buf.value_length+1)*sizeof(char));
+        buf = (char*)malloc((m_buf.value_length)*sizeof(char));
         read(fp,buf,m_buf.value_length);
         buf[m_buf.value_length]='\0';
         ht_set(ht,m_buf.key,buf,1);
-        //printf("%u %s\n",m_buf.key,buf);
-      }else{
-        ht_remove(ht,m_buf.key);
+        printf("Backup.txt | key:%10u | value:%10s | WRITE\n",m_buf.key,buf);
       }
     }
+    printf("\nbackup.txt was loaded correctly!\n");
     close(fp);
   }
 
   log_file = open("backup.log",O_RDONLY);//read
-
   if(log_file!=-1)
   {
+    printf("\nbackup.log is going to be loaded!\n\n");
     while(read(log_file,&m_buf,sizeof(m_buf))!=0)
     {
       if(m_buf.info==WRITE || m_buf.info==OVERWRITE){
-        buf = (char*)malloc((m_buf.value_length+1)*sizeof(char));
+        buf = (char*)malloc((m_buf.value_length)*sizeof(char));
         read(fp,buf,m_buf.value_length);
         buf[m_buf.value_length]='\0';
         ht_set(ht,m_buf.key,buf,1);
-        //printf("%u %s\n",m_buf.key,buf);
+        printf("Backup.log | key:%10u | value:%10s | WRITE\n",m_buf.key,buf);
       }else{
         ht_remove(ht,m_buf.key);
+        printf("Backup.log | key:%10u | value:%10s | REMOVE\n",m_buf.key,buf);
       }
     }
+    printf("\nbackup.log was loaded correctly!\n");
     close(log_file);
   }
-
+  remove("backup.log");
   log_file = open("backup.log",O_CREAT|O_WRONLY);
 
-
-
   struct sockaddr_in server_addr;
-
-
 
   sock_fd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -446,7 +444,7 @@ char * buf;
   struct sockaddr_in client_addr;
   socklen_t size_addr;
 
-  //pthread_create(&client,NULL,log_cycle,(void*)NULL);
+  pthread_create(&client,NULL,log_cycle,(void*)NULL);
   pthread_create(&client,NULL,front_server_alive,(void*)NULL);
   //int new_fd;
   while(1){

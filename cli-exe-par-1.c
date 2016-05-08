@@ -29,7 +29,7 @@ int main(){
 		for (uint32_t i = 1; i < MAX_VALUES; i +=1){
 			//printf("2 : %u\n",i);
 			sprintf(linha, "%u", i);
-			kv_write(kv, 2*i , linha, strlen(linha)+1, 0);
+			kv_write(kv, i , linha, strlen(linha)+1, 0);
 		}
 
 
