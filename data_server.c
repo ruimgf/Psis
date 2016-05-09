@@ -158,6 +158,11 @@ void intHandler(int dumbi){
   }
   backup_ht();
   close(fp);
+<<<<<<< HEAD
+=======
+  close(sock_fd);
+  clean_hashtable(ht);
+>>>>>>> bf501b4bfda77462f64e9e6d149ea89f6590795a
   exit(0);
 }
 
