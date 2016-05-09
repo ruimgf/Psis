@@ -4,8 +4,8 @@
 
 int main()
 {
-  int i=0;
-  char linha[300];
+  unsigned int i=0;
+  char linha[500];
   int kv = kv_connect("127.0.0.1",9999);
   i++;sprintf(linha, "%d: A HISTORIA DO PATINHO FEIO", i);kv_write(kv, i , linha, strlen(linha)+1, 0);
   i++;sprintf(linha, "%d: Era uma vez uma mamã pata que teve 5 ovos.", i);kv_write(kv, i , linha, strlen(linha)+1, 0);
@@ -32,10 +32,20 @@ int main()
   i++;sprintf(linha, "%d: - E é tão bonito! Dizia outra.", i);kv_write(kv, i , linha, strlen(linha)+1, 0);
   i++;sprintf(linha, "%d: Bonito?... De quem estarão a falar? Pensou o patinho feio. ", i);kv_write(kv, i , linha, strlen(linha)+1, 0);
   i++;sprintf(linha, "%d: De repente, o patinho feio viu que todos olhavam para ele e, ao ver o seu reflexo na água, viu um grande e elegante cisne. ", i);kv_write(kv, i , linha, strlen(linha)+1, 0);
-  i++;sprintf(linha, "%d: - Oh!... Exclama o patinho admirado.", i);kv_write(kv, i , linha, strlen(linha)+1, 0);
-  i++;sprintf(linha, "%d: Crianças e outros cisnes admiravam a sua beleza e cumprimentavam-no alegremente.", i);kv_write(kv, i , linha, strlen(linha)+1, 0);
-  i++;sprintf(linha, "%d: Afinal ele não era um patinho feio mas um belo e jovem cisne!", i);kv_write(kv, i , linha, strlen(linha)+1, 0);
-  i++;sprintf(linha, "%d: A partir desse dia, não houve mais tristezas, e o patinho feio que agora era um belo cisne, viveu feliz para sempre!", i);kv_write(kv, i , linha, strlen(linha)+1, 0);
-  i++;sprintf(linha, "%d: VITORIA VITORIA ACABOU-SE A HISTORIA", i);kv_write(kv, i , linha, strlen(linha)+1, 0);
+  i++;
+  sprintf(linha, "%u: - Oh!... Exclama o patinho admirado.", i);
+  kv_write(kv, i , linha, strlen(linha)+1, 0);
+  i++;
+  sprintf(linha, "%u: Crianças e outros cisnes admiravam a sua beleza e cumprimentavam-no alegremente.", i);
+  kv_write(kv, i , linha, strlen(linha)+1, 0);
+  i++;
+  sprintf(linha, "%u: Afinal ele não era um patinho feio mas um belo e jovem cisne!", i);
+  kv_write(kv, i , linha, strlen(linha)+1, 0);
+  i++;
+  sprintf(linha, "%u: A partir desse dia, não houve mais tristezas, e o patinho feio que agora era um belo cisne, viveu feliz para sempre!", i);
+  kv_write(kv, i , linha, strlen(linha)+1, 0);
+  i++;
+  sprintf(linha, "%u: VITORIA VITORIA ACABOU-SE A HISTORIA", i);
+  kv_write(kv, i , linha, strlen(linha)+1, 0);
   kv_close(kv);
 }

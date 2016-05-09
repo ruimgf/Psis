@@ -1,5 +1,4 @@
 #include "psiskv.h"
-#include "list.h"
 
 #include <pthread.h>
 
@@ -82,9 +81,8 @@ void * data_server_alive(void * fd){
 }
 
 void intHandler(int dumbi){
-  //print_list(begin);
-  //kill(pid,SIGINT);
   kill(data_server_pid,SIGINT);
+  unlink("/tmp/fifo");
   close(sock_fd);
   exit(0);
 }
@@ -144,11 +142,10 @@ int main(int argc, char * argv[]){
     data_server_pid = pid;
     comunicar = 1;
   }
+
   message m;
   pthread_create(&client,NULL,data_server_alive,(void*)NULL);
   if(pid!=0){
-    printf("entrei no ifFF\n");
-
     if(comunicar == 1){
       int fifo;
       fifo = open("/tmp/fifo", O_RDONLY);
@@ -161,12 +158,9 @@ int main(int argc, char * argv[]){
       sscanf(buf_fifo,"%d",&port_data_server);
       close(fifo);
     }
-    printf("go accept\n");
     int new_fd;
     while(1){
-      printf("entrei while\n");
       new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
-      printf("accept front_server\n");
       if(new_fd == -1){
         exit(-1);
       }
@@ -175,7 +169,6 @@ int main(int argc, char * argv[]){
       if(send(new_fd, &m, sizeof(m), 0)==-1){
         return(-1);
       }
-      printf("make send\n");
 
       // faz um send
       close(new_fd);
