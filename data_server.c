@@ -91,7 +91,7 @@ int backup_ht(){
         m.key = aux->key;
         m.value_length = strlen(aux->value) + 1;
         write(fp,&m,sizeof(m));////backup jorge
-        write(fp,aux->value,strlen(aux->value) + 1);
+        write(fp,aux->value,strlen(aux->value)+1);
         aux=aux->next;
       }
 
@@ -145,6 +145,7 @@ void * log_cycle(void * name)
 
 
 void intHandler(int dumbi){
+  pthread_mutex_lock(&muxfile);
   close(log_file);
   close(sock_fd);
   remove("backup.log");

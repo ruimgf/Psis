@@ -129,38 +129,42 @@ int main(int argc, char * argv[]){
 
   struct sockaddr_in client_addr;
   socklen_t size_addr;
-  pthread_create(&client,NULL,data_server_alive,(void*)NULL);
+
 
   int pid = 1;
   int father_pid = getpid();
-
+  int comunicar;
   if(argc > 1){
     sscanf(argv[1],"%d",&data_server_pid);
     sscanf(argv[2],"%d",&port_data_server);
-
+    printf("%d\n",port_data_server);
+    comunicar = 0;
   }else{
     pid = fork();
     data_server_pid = pid;
+    comunicar = 1;
   }
   message m;
-
+  pthread_create(&client,NULL,data_server_alive,(void*)NULL);
   if(pid!=0){
-    int fifo;
-    fifo = open("/tmp/fifo", O_RDONLY);
+    printf("entrei no ifFF\n");
 
-    if (fifo==-1)
-  	{
-      exit(-1);
-  	}
-
-    char buf_fifo[10];
-    read(fifo,buf_fifo,10);
-    sscanf(buf_fifo,"%d",&port_data_server);
-    close(fifo);
-
+    if(comunicar == 1){
+      int fifo;
+      fifo = open("/tmp/fifo", O_RDONLY);
+      if (fifo==-1)
+    	{
+        exit(-1);
+    	}
+      char buf_fifo[10];
+      read(fifo,buf_fifo,10);
+      sscanf(buf_fifo,"%d",&port_data_server);
+      close(fifo);
+    }
     printf("go accept\n");
     int new_fd;
     while(1){
+      printf("entrei while\n");
       new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
       printf("accept front_server\n");
       if(new_fd == -1){
