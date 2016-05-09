@@ -19,7 +19,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-//#include <sys/types.h>
+
 #include <sys/wait.h>
 
 #define MAX_THREADS 20
@@ -133,10 +133,9 @@ int main(int argc, char * argv[]){
 
   int pid = 1;
   int father_pid = getpid();
-  int comunicar = 1;
+
   if(argc > 1){
     sscanf(argv[1],"%d",&data_server_pid);
-    comunicar = 0;
     sscanf(argv[2],"%d",&port_data_server);
 
   }else{
@@ -146,27 +145,21 @@ int main(int argc, char * argv[]){
   message m;
 
   if(pid!=0){
-    int new_fd;
-    if(comunicar != 0){
+    int fifo;
+    fifo = open("/tmp/fifo", O_RDONLY);
 
-      int fifo;
-      fifo = open("/tmp/fifo", O_RDONLY);
+    if (fifo==-1)
+  	{
+      exit(-1);
+  	}
 
-      if (fifo==-1)
-    	{
-        exit(-1);
-    	}
-
-      char buf_fifo[10];
-      read(fifo,buf_fifo,10);
-      sscanf(buf_fifo,"%d",&port_data_server);
-      close(fifo);
-
-
-    }
+    char buf_fifo[10];
+    read(fifo,buf_fifo,10);
+    sscanf(buf_fifo,"%d",&port_data_server);
+    close(fifo);
 
     printf("go accept\n");
-
+    int new_fd;
     while(1){
       new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
       printf("accept front_server\n");

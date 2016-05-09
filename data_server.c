@@ -41,6 +41,7 @@ int log_file;//ficheiro log
 // variaveis globais
 pthread_mutex_t mux[10];
 pthread_mutex_t muxfile;
+pthread_mutex_t mux_fd;
 int sock_fd;
 hashtable_t * ht;
 int front_server_pid;
@@ -56,28 +57,20 @@ void * front_server_alive(void * fd){
     sleep(3);
     waitpid(front_server_pid, &ret,0);
     if(kill(front_server_pid,0)!=0){
-      printf("go lauch\n");
-
       front_server_pid = fork();
       if(front_server_pid == 0){
-        printf("fork\n");
         char ** arg;
         arg = (char **)malloc(4*sizeof(char*));
         arg[0] = (char *)malloc(12*sizeof(char));
         sprintf(arg[0],"front_server");
-        //arg[1] = (char *)malloc(12*sizeof(char));
-        //sprintf(arg[1],"%d",port);
-        //arg[2] = (char *)malloc(sizeof(int));
-        //sprintf(arg[2],"0");
         arg[1] = (char*)malloc(10*sizeof(char));
         sprintf(arg[1],"%d",data_server_pid);
         arg[2] = (char*)malloc(10*sizeof(char));
         sprintf(arg[2],"%d",port);
         arg[3] = NULL;
-        printf("go execv\n");
-          if(execv("bin/front_server",arg)==-1){
+        if(execv("bin/front_server",arg)==-1){
             perror("Error execve:");
-          }
+        }
 
       }
     }
@@ -143,7 +136,7 @@ void * log_cycle(void * name)
     for (i = 0; i < NR_LINES_HT; i++) {
       pthread_mutex_unlock(&mux[i]);
     }
-      pthread_mutex_unlock(&muxfile);
+    pthread_mutex_unlock(&muxfile);
     printf("unlock\n");
     sleep(60);
   }
@@ -153,6 +146,7 @@ void * log_cycle(void * name)
 
 void intHandler(int dumbi){
   close(log_file);
+  close(sock_fd);
   remove("backup.log");
   remove("backup.txt");
   fp = open("backup.txt",O_CREAT|O_WRONLY,0600);
@@ -163,27 +157,26 @@ void intHandler(int dumbi){
   }
   backup_ht();
   close(fp);
-  close(sock_fd);
   exit(0);
 }
 
 int op_read(int new_fd, message m){
 
   item_t * aux;
-  message m1;
+  message m_send;
   char * buf,* buf_send;
 
   buf = ht_get( ht , m.key );
 
   if(buf==NULL){
-    m1.info = - 2 ;
-    if(send(new_fd,&m1, sizeof(m1),0)==-1){
+    m_send.info = - 2 ;
+    if(send(new_fd,&m_send, sizeof(m_send),0)==-1){
       return -1;
     }
     return 0;
   }else{
-    m1.info = strlen(buf) + 1;
-    if(send(new_fd,&m1, sizeof(m1),0)==-1){
+    m_send.info = strlen(buf) + 1;
+    if(send(new_fd,&m_send, sizeof(m_send),0)==-1){
       return -1;
     }
   }
@@ -247,9 +240,9 @@ int op_delete(int new_fd ,message m){
 
 
 void * thread(void * fd){
-
   int new_fd = *((int*)(fd));
-  free(fd);
+  pthread_mutex_unlock(&mux_fd);
+  //free(fd);
   message m;
 
   int naosair = 1;
@@ -327,6 +320,12 @@ int main(int argc, char *argv[]){
 		printf("mutex creation error\n");
 		exit(-1);
 	}
+
+
+  if(0 != pthread_mutex_init(&mux_fd, NULL)){
+		printf("mutex creation error\n");
+		exit(-1);
+	}
   //falta o destroy
 
   ht = ht_create(NR_LINES_HT);
@@ -340,9 +339,10 @@ int main(int argc, char *argv[]){
       if(m_buf.info==WRITE || m_buf.info==OVERWRITE){
         buf = (char*)malloc((m_buf.value_length)*sizeof(char));
         read(fp,buf,m_buf.value_length);
-        buf[m_buf.value_length]='\0';
+        buf[m_buf.value_length-1]='\0';
         ht_set(ht,m_buf.key,buf,1);
         printf("Backup.txt | key:%10u | value:%10s | WRITE\n",m_buf.key,buf);
+        free(buf);
       }
     }
     printf("\nbackup.txt was loaded correctly!\n");
@@ -358,7 +358,7 @@ int main(int argc, char *argv[]){
       if(m_buf.info==WRITE || m_buf.info==OVERWRITE){
         buf = (char*)malloc((m_buf.value_length)*sizeof(char));
         read(fp,buf,m_buf.value_length);
-        buf[m_buf.value_length]='\0';
+        buf[m_buf.value_length-1]='\0';
         ht_set(ht,m_buf.key,buf,1);
         printf("Backup.log | key:%10u | value:%10s | WRITE\n",m_buf.key,buf);
       }else{
@@ -416,18 +416,19 @@ int main(int argc, char *argv[]){
   pthread_create(&client,NULL,log_cycle,(void*)NULL);
   pthread_create(&client,NULL,front_server_alive,(void*)NULL);
 
+  int new_fd;
   while(1){
-    int * new_fd = (int *)malloc(sizeof(int));
-    *new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
+    pthread_mutex_lock(&mux_fd);
+    new_fd = accept(sock_fd,(struct sockaddr *)&client_addr, &size_addr);
 
-    if(*new_fd == -1){
+    if(new_fd == -1){
       exit(-1);
     }
 
     #ifdef DEBUG
     printf("accept\n");
     #endif
-    pthread_create(&client,NULL,thread,(void*)new_fd);
+    pthread_create(&client,NULL,thread,(void*)&new_fd);
 
   }
 
