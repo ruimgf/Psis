@@ -39,26 +39,28 @@ void * data_server_alive(void * fd){
   socklen_t size_addr;
   int front_server_pid = getpid();
   while(1){
+
     sleep(3);
     waitpid(data_server_pid, &ret,0);
+
     if(kill(data_server_pid,0)!=0){
       data_server_pid = fork();
+
       if(data_server_pid == 0){
+
         char ** arg;
-        arg = (char **)malloc(5*sizeof(char*));
+        arg = (char **)malloc(4*sizeof(char*));
         arg[0] = (char *)malloc(12*sizeof(char));
         sprintf(arg[0],"data_server");
         arg[1] = (char *)malloc(12*sizeof(char));
         sprintf(arg[1],"%d",port);
-        arg[2] = (char *)malloc(1*sizeof(char));
-        sprintf(arg[2],"1");
-        arg[3] = (char *)malloc(4*sizeof(char));
-        sprintf(arg[3],"%d",front_server_pid);
-        arg[4] = NULL;
+        arg[2] = (char *)malloc(4*sizeof(char));
+        sprintf(arg[2],"%d",front_server_pid);
+        arg[3] = NULL;
 
-          if(execv("bin/data_server",arg)==-1){
-            perror("Error execve:");
-          }
+        if(execv("bin/data_server",arg)==-1){
+          perror("Error execve:");
+        }
 
       }else{
         int fifo;
