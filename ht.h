@@ -24,4 +24,3 @@ int ht_hash( hashtable_t * hashtable, unsigned int key );
 int ht_set( hashtable_t *hashtable, unsigned int key, char *value, int overwrite );
 char * ht_get( hashtable_t *hashtable, unsigned int key );
 int ht_remove( hashtable_t *hashtable, unsigned int key);
-void clean_hashtable(hashtable_t * hashtable);

@@ -1,4 +1,4 @@
-#include "list.h"
+#include "ht.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -6,9 +6,6 @@
 /** First element of list is only a pointer**/
 
 item_t * creat_list(){
-    //item * begin;
-    //begin = (item *) malloc(sizeof(item));
-    //begin->next = NULL
     return NULL;
 }
 
@@ -206,20 +203,4 @@ char * ht_get( hashtable_t *hashtable, unsigned int key ) {
     return NULL;
   }
 
-}
-
-void clean_hashtable(hashtable_t * hashtable){
-  int i;
-  item_t * aux1 , * aux2;
-  for (i = 0 ; i < hashtable->line_nr; i++) {
-    aux1=hashtable->table[i]->next;
-    while(aux1!=NULL){
-      aux2=aux1->next;
-      free(aux1->value);
-      free(aux1);
-      aux1 = aux2;
-    }
-  }
-  free(hashtable->table);
-  free(hashtable);
 }
