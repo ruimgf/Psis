@@ -213,7 +213,7 @@ int op_write(int new_fd, message m){
     m_send.info = ht_set(ht,m.key,buf,0);
   }
 
-  if (m1.info==0) {
+  if (m_send.info==0) {
     pthread_mutex_lock(&muxfile);
     write(log_file,&m,sizeof(m));////backup jorge
     write(log_file,buf,m.value_length);
@@ -301,7 +301,7 @@ int main(int argc, char *argv[]){
   message m_buf;
 
   char * buf;
-
+  int front_server_port;
   if(argc > 1){
     sscanf(argv[1],"%d",&front_server_port);
     if(argc > 2){
