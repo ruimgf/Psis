@@ -23,7 +23,7 @@
 #include <sys/wait.h>
 
 #define MAX_THREADS 20
-#define NR_LINES_HT 10
+#define NR_LINES_HT 2011
 //////////////////
 
 //backup jorge
@@ -39,7 +39,7 @@ int log_file;//ficheiro log
 
 //////////////////
 // variaveis globais
-pthread_mutex_t mux[10];
+pthread_mutex_t mux[NR_LINES_HT];
 pthread_mutex_t muxfile;
 pthread_mutex_t mux_fd;
 int sock_fd;
@@ -158,11 +158,7 @@ void intHandler(int dumbi){
   }
   backup_ht();
   close(fp);
-<<<<<<< HEAD
-=======
-  close(sock_fd);
-  clean_hashtable(ht);
->>>>>>> bf501b4bfda77462f64e9e6d149ea89f6590795a
+  //clean_hashtable(ht);
   exit(0);
 }
 
@@ -256,24 +252,24 @@ void * thread(void * fd){
       recv(new_fd,(void *)&m, sizeof(m), 0);
       switch (m.info) {
         case READ:
-          pthread_mutex_lock(&mux[m.key%10]);
+          pthread_mutex_lock(&mux[m.key%NR_LINES_HT]);
           op_read(new_fd, m);
-          pthread_mutex_unlock(&mux[m.key%10]);
+          pthread_mutex_unlock(&mux[m.key%NR_LINES_HT]);
           break;
         case WRITE:
-          pthread_mutex_lock(&mux[m.key%10]);
+          pthread_mutex_lock(&mux[m.key%NR_LINES_HT]);
           op_write(new_fd,m);
-          pthread_mutex_unlock(&mux[m.key%10]);
+          pthread_mutex_unlock(&mux[m.key%NR_LINES_HT]);
           break;
         case OVERWRITE:
-          pthread_mutex_lock(&mux[m.key%10]);
+          pthread_mutex_lock(&mux[m.key%NR_LINES_HT]);
           op_write(new_fd,m);
-          pthread_mutex_unlock(&mux[m.key%10]);
+          pthread_mutex_unlock(&mux[m.key%NR_LINES_HT]);
           break;
         case DELETE:
-          pthread_mutex_lock(&mux[m.key%10]);
+          pthread_mutex_lock(&mux[m.key%NR_LINES_HT]);
           op_delete(new_fd,m);
-          pthread_mutex_unlock(&mux[m.key%10]);
+          pthread_mutex_unlock(&mux[m.key%NR_LINES_HT]);
           break;
         case EXIT :
           naosair = 0;
@@ -315,7 +311,7 @@ int main(int argc, char *argv[]){
   signal(SIGINT, intHandler);
 
   int i;
-  for(i = 0;i< 10;i++){
+  for(i = 0; i < NR_LINES_HT ; i++){
     if(0 != pthread_mutex_init(&mux[i], NULL)){
   		printf("mutex creation error\n");
   		exit(-1);
