@@ -158,7 +158,7 @@ void intHandler(int dumbi){
   }
   backup_ht();
   close(fp);
-  //clean_hashtable(ht);
+//  clean_hashtable(ht);
   exit(0);
 }
 
@@ -201,13 +201,13 @@ int op_write(int new_fd, message m){
 
   buf = (char *)malloc(sizeof(char) * (m.value_length) );
   recv(new_fd,buf,m.value_length, 0);
-
+  pthread_mutex_lock(&mux[m.key%NR_LINES_HT]);
   if (m.info == OVERWRITE) {
     m_send.info = ht_set(ht,m.key,buf,1);
   }else{
     m_send.info = ht_set(ht,m.key,buf,0);
   }
-
+  pthread_mutex_unlock(&mux[m.key%NR_LINES_HT]);
   if (m_send.info==0) {
     pthread_mutex_lock(&muxfile);
     write(log_file,&m,sizeof(m));////backup jorge
@@ -226,9 +226,9 @@ int op_write(int new_fd, message m){
 
 int op_delete(int new_fd ,message m){
   message m_send;
-
+  pthread_mutex_lock(&mux[m.key%NR_LINES_HT]);
   m_send.info = ht_remove(ht,m.key);
-
+  pthread_mutex_unlock(&mux[m.key%NR_LINES_HT]);
   if (m_send.info==0) {
     pthread_mutex_lock(&muxfile);
     write(log_file,&m,sizeof(m));////backup jorges
@@ -257,19 +257,13 @@ void * thread(void * fd){
           pthread_mutex_unlock(&mux[m.key%NR_LINES_HT]);
           break;
         case WRITE:
-          pthread_mutex_lock(&mux[m.key%NR_LINES_HT]);
           op_write(new_fd,m);
-          pthread_mutex_unlock(&mux[m.key%NR_LINES_HT]);
           break;
         case OVERWRITE:
-          pthread_mutex_lock(&mux[m.key%NR_LINES_HT]);
           op_write(new_fd,m);
-          pthread_mutex_unlock(&mux[m.key%NR_LINES_HT]);
           break;
         case DELETE:
-          pthread_mutex_lock(&mux[m.key%NR_LINES_HT]);
           op_delete(new_fd,m);
-          pthread_mutex_unlock(&mux[m.key%NR_LINES_HT]);
           break;
         case EXIT :
           naosair = 0;
