@@ -29,7 +29,11 @@ int sock_fd;
 int data_server_pid;
 int port = 9999;
 int port_data_server;
-
+/**
+ * [data_server_alive thread que verifica se o data_server está a correr]
+ * @param  fd [NULL]
+ * @return    [NULL]
+ */
 void * data_server_alive(void * fd){
   int ret;
   message m;
@@ -40,20 +44,23 @@ void * data_server_alive(void * fd){
   while(1){
 
     sleep(3);
+    // se o data_server for filho espera ate receber notificaçao da morte
     waitpid(data_server_pid, &ret,0);
-
+    // caso contrario tenta enviar um sinal NULL que quanto morrer não conseguira ser entregue e o kill return algo diferente de 0
     if(kill(data_server_pid,0)!=0){
       data_server_pid = fork();
 
       if(data_server_pid == 0){
-
+        //trata de lançar o novo data server
         char ** arg;
         arg = (char **)malloc(4*sizeof(char*));
         arg[0] = (char *)malloc(12*sizeof(char));
         sprintf(arg[0],"data_server");
         arg[1] = (char *)malloc(12*sizeof(char));
+        /// passa porta do front_server por argumento
         sprintf(arg[1],"%d",port);
         arg[2] = (char *)malloc(4*sizeof(char));
+        // passa pid do front_server por argumento
         sprintf(arg[2],"%d",front_server_pid);
         arg[3] = NULL;
 
@@ -63,6 +70,7 @@ void * data_server_alive(void * fd){
 
       }else{
         int fifo;
+        // abre fifo para receber comunicação da porta onde o data_server deu bind
         fifo = open("/tmp/fifo", O_RDONLY);
       	if (fifo==-1)
       	{
@@ -79,7 +87,10 @@ void * data_server_alive(void * fd){
   }
 
 }
-
+/**
+ * [intHandler funçao que trata do sinal enviado pelo CTRL C]
+ * @param dumbi [description]
+ */
 void intHandler(int dumbi){
   kill(data_server_pid,SIGINT);
   unlink("/tmp/fifo");
@@ -132,6 +143,7 @@ int main(int argc, char * argv[]){
   int pid = 1;
   int father_pid = getpid();
   int comunicar;
+  /** ve se foi lançado pelo sheel ou pelo data_server */
   if(argc > 1){
     sscanf(argv[1],"%d",&data_server_pid);
     sscanf(argv[2],"%d",&port_data_server);
@@ -146,6 +158,7 @@ int main(int argc, char * argv[]){
   message m;
   pthread_create(&client,NULL,data_server_alive,(void*)NULL);
   if(pid!=0){
+    // quando é lançado pelo front server não tem de comunicar com ele para saber a sua porta
     if(comunicar == 1){
       int fifo;
       fifo = open("/tmp/fifo", O_RDONLY);
@@ -169,15 +182,13 @@ int main(int argc, char * argv[]){
       if(send(new_fd, &m, sizeof(m), 0)==-1){
         return(-1);
       }
-
-      // faz um send
       close(new_fd);
     }
 
 
 
   }else{
-
+    //quando o front lança o data.
     //excve e passa porta por argumento
     char ** arg;
     arg = (char **)malloc(4*sizeof(char*));
