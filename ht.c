@@ -4,11 +4,21 @@
 #include <string.h>
 
 /** First element of list is only a pointer**/
-
+/**
+ * [creat_list Cria uma nova Lista]
+ * @return [description]
+ */
 item_t * creat_list(){
     return NULL;
 }
-
+/**
+ * [insert_end_list insere no fim da lista]
+ * @param  begin     [Inicio da Lista]
+ * @param  key       [chave]
+ * @param  value     [valor]
+ * @param  overwrite [1 para fazer overwrite 0 para não fazer overwrite ]
+ * @return           [0 em caso de sucesso -1 em caso de erro]
+ */
 int insert_end_list(item_t * begin, unsigned int key,char * value,int overwrite)
 {
   item_t * aux;
@@ -54,7 +64,12 @@ int insert_end_list(item_t * begin, unsigned int key,char * value,int overwrite)
   return -1; //se nao inseriu nem fez overwrite
 
 }
-
+/**
+ * [search_key_on_list procura por uma key na lista]
+ * @param  begin [inicio da lista]
+ * @param  key   [chave a procurar]
+ * @return       [NULL em caso de erro ou o endereço da estrutura correspondente caso exista]
+ */
 item_t *  search_key_on_list(item_t * begin, unsigned int key){
 
      item_t * aux;
@@ -74,7 +89,12 @@ item_t *  search_key_on_list(item_t * begin, unsigned int key){
      return aux;
 
 }
-
+/**
+ * [delete_entry apaga uma entrada da lista]
+ * @param  begin [inicio da lista]
+ * @param  key   [chave]
+ * @return       [-1 em caso de erro 0 em caso de sucesso]
+ */
 int delete_entry(item_t * begin, unsigned int key)
 {
     item_t * aux1 = begin->next;
@@ -112,7 +132,10 @@ int delete_entry(item_t * begin, unsigned int key)
     return -1;
 }
 
-
+/**
+ * [delete_list Apaga uma lista]
+ * @param begin [inicio da lista]
+ */
 void delete_list(item_t * begin){
 
     item_t * aux1 = begin->next;
@@ -129,7 +152,10 @@ void delete_list(item_t * begin){
       aux1=aux2;
     }
 }
-
+/**
+ * [print_list imprime lista]
+ * @param begin [inicio da lista]
+ */
 void print_list(item_t * begin){
     item_t * aux = begin->next;
 
@@ -138,7 +164,11 @@ void print_list(item_t * begin){
       aux=aux->next;
     }
 }
-
+/**
+ * [ht_create cria uma nova hashtable]
+ * @param  line_nr [nr de linhas da hashtable]
+ * @return         [NULL em caso de erro ou o endereço da estrutura]
+ */
 hashtable_t * ht_create( int line_nr ) {
 
 	hashtable_t * hashtable = NULL;
@@ -165,11 +195,23 @@ hashtable_t * ht_create( int line_nr ) {
 
 	return hashtable;
 }
-
+/**
+ * [ht_hash procura qual o indice da lista de uma determinada key]
+ * @param  hashtable [pointer para a hashtable]
+ * @param  key       [chave a pesquisar]
+ * @return           [indice da chave]
+ */
 int ht_hash( hashtable_t * hashtable, unsigned int key ) {
 	return key % hashtable->line_nr;
 }
-
+/**
+ * [ht_set modifica uma entrada ou insere de novo na hashtable]
+ * @param  hashtable [ponteiro para a hashtable]
+ * @param  key       [chave]
+ * @param  value     [valor]
+ * @param  overwrite [1 para overwrite 0 para não overwrite]
+ * @return           [-1 em caso de erro 0 em successo]
+ */
 int ht_set( hashtable_t *hashtable, unsigned int key, char *value, int overwrite ) {
 	int bin = 0;
   item_t * next;
@@ -180,7 +222,12 @@ int ht_set( hashtable_t *hashtable, unsigned int key, char *value, int overwrite
   return insert_end_list(next,key,value,overwrite);
 
 }
-
+/**
+ * [ht_remove remove uma entrada da hashtable]
+ * @param  hashtable [ponteiro para hashtable]
+ * @param  key       [chave]
+ * @return           [description]
+ */
 int ht_remove( hashtable_t *hashtable, unsigned int key) {
 	int bin = 0;
   item_t * next;
@@ -189,7 +236,12 @@ int ht_remove( hashtable_t *hashtable, unsigned int key) {
 	return delete_entry(next,key);
 
 }
-
+/**
+ * [ht_get procura uma key na hashtable]
+ * @param  hashtable [ponteiro inio da hashtable]
+ * @param  key       [chave]
+ * @return           [NULL em caso de erro ou o endereço do inico da chave]
+ */
 char * ht_get( hashtable_t *hashtable, unsigned int key ) {
 	int bin = 0;
 	item_t *pair;

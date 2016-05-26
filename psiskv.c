@@ -6,6 +6,14 @@
 #include <stdio.h>
 #include <unistd.h>
 
+
+
+/**
+ * [kv_connect Realiza uma nova conexão ao servidor]
+ * @param  kv_server_ip   [Endereço do Servidor]
+ * @param  kv_server_port [Porta do Servidor]
+ * @return                [Return]
+ */
 int kv_connect(char * kv_server_ip, int kv_server_port){
 
 
@@ -13,10 +21,16 @@ int kv_connect(char * kv_server_ip, int kv_server_port){
   socklen_t len_endereco;
   int err;
   message m;
+
   int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
   int sock_fd1 = socket(AF_INET, SOCK_STREAM, 0);
+
   if (sock_fd == -1){
     return(-1);
+  }
+
+  if(kv_server_ip == NULL || kv_server_port <= 0){
+    return(-2);
   }
 
   server_addr.sin_family = AF_INET;
@@ -48,11 +62,18 @@ int kv_connect(char * kv_server_ip, int kv_server_port){
   return(sock_fd1);
 }
 
+/**
+ * [kv_close Termina a ligação entre cliente e servidor]
+ * @param kv_descriptor [Indentificador do servidor]
+ */
 void kv_close(int kv_descriptor){
   message m ;
   m.info = EXIT;
   m.key = -1;
   m.value_length = -1;
+  if (kv_descriptor == -1 ){
+    return;
+  }
 
   if(send(kv_descriptor, &m, sizeof(m), 0)==-1){
     return;
@@ -60,7 +81,15 @@ void kv_close(int kv_descriptor){
   close(kv_descriptor);
 
 }
-
+/**
+ * [kv_write Trata operções de escrita por parte dos clientes]
+ * @param  kv_descriptor [identificador do servidor]
+ * @param  key           [chave]
+ * @param  value         [valor]
+ * @param  value_length  [tamanho do valor]
+ * @param  overwrite     [se quer ou não fazer overwrite]
+ * @return               [-1 em caso de erro 0 no caso de sucesso]
+ */
 int kv_write(int kv_descriptor, uint32_t key, char * value, int value_length, int overwrite){
 
     message m;
@@ -73,6 +102,11 @@ int kv_write(int kv_descriptor, uint32_t key, char * value, int value_length, in
 
     m.key = key;
     m.value_length = value_length;
+
+    //verificar argumentos
+    if (kv_descriptor == -1 || value == NULL || value_length <= 0){
+      return(-2);
+    }
 
     if(send(kv_descriptor, &m, sizeof(m), 0)==-1){
       return(-1);
@@ -89,7 +123,14 @@ int kv_write(int kv_descriptor, uint32_t key, char * value, int value_length, in
 
 }
 
-
+/**
+ * [kv_read operação leitura por parte do cliente]
+ * @param  kv_descriptor [identificador do servidor]
+ * @param  key           [chave]
+ * @param  value         [valor]
+ * @param  value_length  [tamanho para receber valor]
+ * @return               [nr_bytes lidos ou -1,-2 em casos de erro]
+ */
 int kv_read(int kv_descriptor, uint32_t key, char * value, int value_length){
 
   message m_r, m_s;
@@ -97,6 +138,11 @@ int kv_read(int kv_descriptor, uint32_t key, char * value, int value_length){
   m_s.info = READ;
   m_s.key = key;
   m_s.value_length = value_length;
+
+  //verificar argumentos
+  if (kv_descriptor == -1 || value == NULL || value_length <= 0){
+    return(-2);
+  }
 
   if(send(kv_descriptor, &m_s, sizeof(m_s), 0)==-1){
     return(-1);
@@ -120,8 +166,8 @@ int kv_read(int kv_descriptor, uint32_t key, char * value, int value_length){
 
 /**
  * [kv_delete Send to server an order to delete a entry identify by key]
- * @param kv_descriptor [fd indentifier of server]
- * @param key           [key of entry to delete]
+ * @param kv_descriptor [identificador do servidor]
+ * @param key           [chave]
  * @return [-1 case of error 0 on sucess]
  */
 int kv_delete(int kv_descriptor, uint32_t key){
@@ -137,9 +183,6 @@ int kv_delete(int kv_descriptor, uint32_t key){
   if(recv(kv_descriptor,&m,sizeof(m), 0)==-1){
     return(-1);
   }
-
-  /* adicionar leitura para confirmar delete com sucesso */
-
 
   return m.info;
 

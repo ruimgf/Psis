@@ -295,7 +295,7 @@ int main(int argc, char *argv[]){
     sscanf(argv[1],"%d",&front_server_port);
     if(argc > 2){
       sscanf(argv[2],"%d",&front_server_pid);
-      printf("%d\n",front_server_pid);
+      //printf("%d\n",front_server_pid);
     }
   }else{
     printf("need to specify front_server_port\n");
@@ -337,7 +337,7 @@ int main(int argc, char *argv[]){
         read(fp,buf,m_buf.value_length);
         buf[m_buf.value_length-1]='\0';
         ht_set(ht,m_buf.key,buf,1);
-        printf("Backup.txt | key:%10u | value:%10s | WRITE\n",m_buf.key,buf);
+        //printf("Backup.txt | key:%10u | value:%10s | WRITE\n",m_buf.key,buf);
         free(buf);
       }
     }
@@ -356,10 +356,10 @@ int main(int argc, char *argv[]){
         read(fp,buf,m_buf.value_length);
         buf[m_buf.value_length-1]='\0';
         ht_set(ht,m_buf.key,buf,1);
-        printf("Backup.log | key:%10u | value:%10s | WRITE\n",m_buf.key,buf);
+        //printf("Backup.log | key:%10u | value:%10s | WRITE\n",m_buf.key,buf);
       }else{
         ht_remove(ht,m_buf.key);
-        printf("Backup.log | key:%10u | value:%10s | REMOVE\n",m_buf.key,buf);
+        //printf("Backup.log | key:%10u | value:%10s | REMOVE\n",m_buf.key,buf);
       }
     }
     printf("\nbackup.log was loaded correctly!\n");
@@ -390,8 +390,8 @@ int main(int argc, char *argv[]){
   }
 
   #ifdef DEBUG
-    printf(" socket created and binded \n Ready to receive messages\n");
-    printf("sucess \n");
+    //printf(" socket created and binded \n Ready to receive messages\n");
+    //printf("sucess \n");
   #endif
 
   // tell front_server binded port
