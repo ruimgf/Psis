@@ -1,5 +1,6 @@
 #include <stdint.h>
 
+#define NONE 9
 #define DEBUG 0
 #define SOCK_ADDRESS "127.0.0.1"
 #define WRITE 1
@@ -7,6 +8,7 @@
 #define READ 3
 #define DELETE 4
 #define EXIT 8
+
 
 #define  MAX_CLIENT_WAIT 20
 
