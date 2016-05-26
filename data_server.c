@@ -48,18 +48,25 @@ int front_server_pid;
 int data_server_pid;
 int port = 10500;
 /////////
-
+/**
+ * [front_server_alive thread que verifica se o front_server está UP]
+ * @param  fd [description]
+ * @return    [description]
+ */
 void * front_server_alive(void * fd){
 
   int ret;
   int data_server_pid = getpid();
   while(1){
     sleep(3);
+    // se for filho espera até ser notificado
     waitpid(front_server_pid, &ret,0);
+    // envia sinal, se conseguir entregar é porque está vivo
     if(kill(front_server_pid,0)!=0){
       front_server_pid = fork();
       if(front_server_pid == 0){
         char ** arg;
+        // passa porta e pid por argumento
         arg = (char **)malloc(4*sizeof(char*));
         arg[0] = (char *)malloc(12*sizeof(char));
         sprintf(arg[0],"front_server");
@@ -99,7 +106,11 @@ int backup_ht(){
 
     return 0;
 }
-
+/**
+ * [log_cycle thread que faz clean do ficheiro de log e produz um novo backup de x em x segundos]
+ * @param  name [description]
+ * @return      [description]
+ */
 void * log_cycle(void * name)
 {
 
@@ -143,8 +154,12 @@ void * log_cycle(void * name)
 
 }
 
-
+/**
+ * [intHandler thread que trata do CTRL C]
+ * @param dumbi [description]
+ */
 void intHandler(int dumbi){
+  int i;
   pthread_mutex_lock(&muxfile);
   close(log_file);
   close(sock_fd);
@@ -157,11 +172,22 @@ void intHandler(int dumbi){
     exit(-1);
   }
   backup_ht();
+  //  clean_hashtable(ht);
+  pthread_mutex_destroy(&muxfile);
+  for(i = 0; i < NR_LINES_HT ; i++){
+    pthread_mutex_destroy(&mux[i]);
+
+  }
   close(fp);
-//  clean_hashtable(ht);
+
   exit(0);
 }
-
+/**
+ * [op_read trata das operaçoes de leitura que chegam ao servidor]
+ * @param  new_fd [identificador servidors]
+ * @param  m      [mensagem]
+ * @return        [description]
+ */
 int op_read(int new_fd, message m){
 
   item_t * aux;
@@ -194,7 +220,12 @@ int op_read(int new_fd, message m){
   return 0;
 }
 
-
+/**
+ * [op_write trata das operaçoes de escrita que chegam ao servidor]
+ * @param  new_fd [identificador do servidor]
+ * @param  m      [mensagem]
+ * @return        [description]
+ */
 int op_write(int new_fd, message m){
   char * buf;
   message m_send;
@@ -223,7 +254,12 @@ int op_write(int new_fd, message m){
   return 0;
 }
 
-
+/**
+ * [op_delete operação de apagar]
+ * @param  new_fd [identificador do servidor]
+ * @param  m      [mensagem]
+ * @return        [description]
+ */
 int op_delete(int new_fd ,message m){
   message m_send;
   pthread_mutex_lock(&mux[m.key%NR_LINES_HT]);
@@ -240,7 +276,11 @@ int op_delete(int new_fd ,message m){
   return 0;
 }
 
-
+/**
+ * [thread thread que trata dos clientes]
+ * @param  fd [file description]
+ * @return    [description]
+ */
 void * thread(void * fd){
   int new_fd = *((int*)(fd));
   pthread_mutex_unlock(&mux_fd);
@@ -291,6 +331,7 @@ int main(int argc, char *argv[]){
 
   char * buf;
   int front_server_port;
+
   if(argc > 1){
     sscanf(argv[1],"%d",&front_server_port);
     if(argc > 2){
@@ -305,6 +346,7 @@ int main(int argc, char *argv[]){
   signal(SIGINT, intHandler);
 
   int i;
+
   for(i = 0; i < NR_LINES_HT ; i++){
     if(0 != pthread_mutex_init(&mux[i], NULL)){
   		printf("mutex creation error\n");
@@ -322,7 +364,7 @@ int main(int argc, char *argv[]){
 		printf("mutex creation error\n");
 		exit(-1);
 	}
-  //falta o destroy
+
 
   ht = ht_create(NR_LINES_HT);
 
@@ -389,10 +431,6 @@ int main(int argc, char *argv[]){
     port++;
   }
 
-  #ifdef DEBUG
-    //printf(" socket created and binded \n Ready to receive messages\n");
-    //printf("sucess \n");
-  #endif
 
   // tell front_server binded port
   char buf_fifo[10];
@@ -420,10 +458,11 @@ int main(int argc, char *argv[]){
     if(new_fd == -1){
       exit(-1);
     }
-
+    /*
     #ifdef DEBUG
     printf("accept\n");
     #endif
+    */
     pthread_create(&client,NULL,thread,(void*)&new_fd);
 
   }
