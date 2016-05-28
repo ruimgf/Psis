@@ -23,7 +23,7 @@
 #include <sys/wait.h>
 
 #define MAX_THREADS 20
-#define NR_LINES_HT 2011
+#define NR_LINES_HT 37
 //////////////////
 
 //backup jorge

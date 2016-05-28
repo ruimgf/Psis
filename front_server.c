@@ -87,16 +87,31 @@ void * data_server_alive(void * fd){
   }
 
 }
-/**
- * [intHandler funçao que trata do sinal enviado pelo CTRL C]
- * @param dumbi [description]
- */
 void intHandler(int dumbi){
   kill(data_server_pid,SIGINT);
   unlink("/tmp/fifo");
   close(sock_fd);
   exit(0);
 }
+void * keyboard(void * fd){
+  char buf[100], proc_buf[100];
+  int i;
+  while(1){
+    if(fgets(buf,100,stdin)!=0){
+      sscanf(buf,"%s",proc_buf);
+      if(strcmp(proc_buf,"quit")==0){
+        intHandler(i);
+      }
+
+    }
+  }
+
+}
+/**
+ * [intHandler funçao que trata do sinal enviado pelo CTRL C]
+ * @param dumbi [description]
+ */
+
 
 int main(int argc, char * argv[]){
 
@@ -157,6 +172,9 @@ int main(int argc, char * argv[]){
 
   message m;
   pthread_create(&client,NULL,data_server_alive,(void*)NULL);
+  
+  pthread_create(&client,NULL,keyboard,(void*)NULL);
+
   if(pid!=0){
     // quando é lançado pelo front server não tem de comunicar com ele para saber a sua porta
     if(comunicar == 1){

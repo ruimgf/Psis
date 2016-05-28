@@ -25,6 +25,13 @@ int main(int argc, char ** argv){
       exit(-1);
     }
     int naosair = 1;
+    printf("***************************************\n");
+    printf("Bem-vindo\n");
+    printf("type r or read to make a read\n");
+    printf("type w or write to make a write\n");
+    printf("type o or overwrite to make a overwrite\n");
+    printf("type d or delete to make a delete\n");
+    printf("type e or exit to exit\n");
 
     while(naosair){
 
@@ -34,15 +41,15 @@ int main(int argc, char ** argv){
 
       for(int i = 0; i < strlen(buf); i++)
         buf[i] = tolower(buf[i]);
-      if(strcmp(buf,"write")==0)
+      if(strcmp(buf,"write")==0 || strcmp(buf,"w")==0 )
         op=WRITE;
-      else if(strcmp(buf,"overwrite")==0)
+      else if(strcmp(buf,"overwrite")==0 || strcmp(buf,"o")==0)
         op=OVERWRITE;
-      else if(strcmp(buf,"read")==0)
+      else if(strcmp(buf,"read")==0 || strcmp(buf,"r")==0)
         op=READ;
-      else if(strcmp(buf,"delete")==0)
+      else if(strcmp(buf,"delete")==0 || strcmp(buf,"d")==0)
         op=DELETE;
-      else if(strcmp(buf,"exit")==0)
+      else if(strcmp(buf,"exit")==0 || strcmp(buf,"e")==0)
         op=EXIT;
       else op=NONE;
 
