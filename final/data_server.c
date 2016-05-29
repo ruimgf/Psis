@@ -199,12 +199,18 @@ int op_read(int new_fd, message m){
   if(buf==NULL){
     m_send.info = - 2 ;
     if(send(new_fd,&m_send, sizeof(m_send),0)==-1){
+      printf("connection lost\n");
+      int ret=0;
+      pthread_exit(&ret);
       return -1;
     }
     return 0;
   }else{
     m_send.info = strlen(buf) + 1;
     if(send(new_fd,&m_send, sizeof(m_send),0)==-1){
+      printf("connection lost\n");
+      int ret=0;
+      pthread_exit(&ret);
       return -1;
     }
   }
@@ -214,6 +220,9 @@ int op_read(int new_fd, message m){
     buf_send = strncpy(buf_send,buf, m.value_length-1);
     buf_send[m.value_length-1]='\0';
     if(send(new_fd,buf_send, m.value_length,0)==-1){
+      printf("connection lost\n");
+      int ret=0;
+      pthread_exit(&ret);
       return -1;
     }
   }
@@ -231,7 +240,11 @@ int op_write(int new_fd, message m){
   message m_send;
 
   buf = (char *)malloc(sizeof(char) * (m.value_length) );
-  recv(new_fd,buf,m.value_length, 0);
+  if(recv(new_fd,buf,m.value_length, 0)==-1){
+    printf("connection lost\n");
+    int ret=0;
+    pthread_exit(&ret);
+  }
   pthread_mutex_lock(&mux[m.key%NR_LINES_HT]);
   if (m.info == OVERWRITE) {
     m_send.info = ht_set(ht,m.key,buf,1);
@@ -247,6 +260,9 @@ int op_write(int new_fd, message m){
   }
 
   if(send(new_fd, &m_send, sizeof(m_send), 0)==-1){
+    printf("connection lost\n");
+    int ret=0;
+    pthread_exit(&ret);
     return(-1);
   }
 
@@ -271,6 +287,9 @@ int op_delete(int new_fd ,message m){
     pthread_mutex_unlock(&muxfile);
   }
   if(send(new_fd, &m_send, sizeof(m_send), 0)==-1){
+    printf("connection lost\n");
+    int ret=0;
+    pthread_exit(&ret);
     return(-1);
   }
   return 0;
@@ -289,7 +308,11 @@ void * thread(void * fd){
 
   int naosair = 1;
   while (naosair) {
-      recv(new_fd,(void *)&m, sizeof(m), 0);
+      if(recv(new_fd,(void *)&m, sizeof(m), 0)==-1){
+        printf("connection lost\n");
+        int ret=0;
+        pthread_exit(&ret);
+      }
       switch (m.info) {
         case READ:
           pthread_mutex_lock(&mux[m.key%NR_LINES_HT]);
