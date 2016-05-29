@@ -122,7 +122,7 @@ void * log_cycle(void * name)
       pthread_mutex_lock(&mux[i]);
     }
     pthread_mutex_lock(&muxfile);
-    printf("lock\n");
+    //printf("lock\n");
 
     close(log_file);
 
@@ -148,7 +148,7 @@ void * log_cycle(void * name)
       pthread_mutex_unlock(&mux[i]);
     }
     pthread_mutex_unlock(&muxfile);
-    printf("unlock\n");
+    //printf("unlock\n");
     sleep(60);
   }
 
@@ -394,7 +394,7 @@ int main(int argc, char *argv[]){
   fp = open("backup.txt",O_RDONLY);//read
   if(fp!=-1)
   {
-    printf("\nbackup.txt is going to be loaded!\n\n");
+    printf("backup.txt is going to be loaded!\n");
     while(read(fp,&m_buf,sizeof(m_buf))!=0)
     {
       if(m_buf.info==WRITE || m_buf.info==OVERWRITE){
@@ -406,7 +406,7 @@ int main(int argc, char *argv[]){
         free(buf);
       }
     }
-    printf("\nbackup.txt was loaded correctly!\n");
+    printf("backup.txt was loaded correctly!\n");
     close(fp);
   }
 

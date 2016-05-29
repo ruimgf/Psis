@@ -53,7 +53,7 @@ int main(int argc, char ** argv){
         op=EXIT;
       else op=NONE;
 
-      if(op != EXIT){
+      if(op != EXIT && op != NONE){
         printf("Key:");
         fgets(buf,100, stdin);
         sscanf(buf,"%u",&key);
@@ -89,7 +89,6 @@ int main(int argc, char ** argv){
           break;
         default:
           printf("Invalid Operation!\n");
-          kv_close(sock_fd);
         break;
       }
     }
