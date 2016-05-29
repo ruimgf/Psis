@@ -413,7 +413,7 @@ int main(int argc, char *argv[]){
   log_file = open("backup.log",O_RDONLY);//read
   if(log_file!=-1)
   {
-    printf("\nbackup.log is going to be loaded!\n\n");
+    printf("backup.log is going to be loaded!\n");
     while(read(log_file,&m_buf,sizeof(m_buf))!=0)
     {
       if(m_buf.info==WRITE || m_buf.info==OVERWRITE){
@@ -427,7 +427,7 @@ int main(int argc, char *argv[]){
         //printf("Backup.log | key:%10u | value:%10s | REMOVE\n",m_buf.key,buf);
       }
     }
-    printf("\nbackup.log was loaded correctly!\n");
+    printf("backup.log was loaded correctly!\n");
     close(log_file);
   }
   remove("backup.log");
